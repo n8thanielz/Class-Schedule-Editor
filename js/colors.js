@@ -19,11 +19,13 @@ function _hash(str) {
 
 ScheduleApp.getCourseColor = function(courseNumber) {
   if (!_colorCache[courseNumber]) {
-    _colorCache[courseNumber] = _PALETTE[_hash(courseNumber) % _PALETTE.length];
+    try { var stored = localStorage.getItem('sv_color_' + courseNumber); } catch(e) { var stored = null; }
+    _colorCache[courseNumber] = stored || _PALETTE[_hash(courseNumber) % _PALETTE.length];
   }
   return _colorCache[courseNumber];
 };
 
 ScheduleApp.setCourseColor = function(courseNumber, color) {
   _colorCache[courseNumber] = color;
+  try { localStorage.setItem('sv_color_' + courseNumber, color); } catch(e) {}
 };

@@ -9,7 +9,8 @@ var scheduleTitle = document.getElementById('schedule-title');
 var scheduleGrid  = document.getElementById('schedule-grid');
 var courseSidebar = document.getElementById('course-sidebar');
 var onlinePanel   = document.getElementById('online-panel');
-var newUploadBtn  = document.getElementById('new-upload-btn');
+var newUploadBtn      = document.getElementById('new-upload-btn');
+var toggleOnlineBtn   = document.getElementById('toggle-online-btn');
 
 var loadedSchedules = [];
 
@@ -37,8 +38,18 @@ function renderAll() {
   var merged = mergeSchedules();
   scheduleTitle.textContent = merged.semester;
   ScheduleApp.renderSchedule(scheduleGrid, merged);
+
+  // Apply persisted hide-online preference before the panel renders so it
+  // picks up wasUserHidden correctly inside renderOnlinePanel.
+  try { if (localStorage.getItem('sv_hide_online') === '1') onlinePanel.dataset.userHidden = 'true'; } catch(e) {}
+
   ScheduleApp.renderOnlinePanel(onlinePanel, merged);
   ScheduleApp.renderSidebar(courseSidebar, merged, loadedSchedules, removeFile);
+
+  // Sync toolbar button with actual panel state after render
+  var isHidden = onlinePanel.dataset.userHidden === 'true';
+  toggleOnlineBtn.textContent = isHidden ? 'Show Online' : 'Hide Online';
+  toggleOnlineBtn.classList.toggle('active', isHidden);
 }
 
 function removeFile(index) {
@@ -73,7 +84,10 @@ pdfInput.addEventListener('change', async function(e) {
 
   try {
     loadedSchedules = [];
-    await loadFile(file);
+    var files = e.target.files;
+    for (var i = 0; i < files.length; i++) {
+      await loadFile(files[i]);
+    }
     renderAll();
     uploadView.classList.add('hidden');
     scheduleView.classList.remove('hidden');
@@ -113,12 +127,32 @@ addFileInput.addEventListener('change', async function(e) {
   }
 });
 
+toggleOnlineBtn.addEventListener('click', function() {
+  var hidden = onlinePanel.dataset.userHidden === 'true';
+  if (hidden) {
+    delete onlinePanel.dataset.userHidden;
+    onlinePanel.classList.remove('hidden');
+    toggleOnlineBtn.textContent = 'Hide Online';
+    toggleOnlineBtn.classList.remove('active');
+    try { localStorage.setItem('sv_hide_online', '0'); } catch(e) {}
+  } else {
+    onlinePanel.dataset.userHidden = 'true';
+    onlinePanel.classList.add('hidden');
+    toggleOnlineBtn.textContent = 'Show Online';
+    toggleOnlineBtn.classList.add('active');
+    try { localStorage.setItem('sv_hide_online', '1'); } catch(e) {}
+  }
+});
+
 newUploadBtn.addEventListener('click', function() {
   loadedSchedules = [];
   scheduleView.classList.add('hidden');
   uploadView.classList.remove('hidden');
   scheduleGrid.innerHTML = '';
   onlinePanel.innerHTML  = '';
+  delete onlinePanel.dataset.userHidden;
   courseSidebar.innerHTML = '';
   addFileBtn.classList.add('hidden');
+  toggleOnlineBtn.textContent = 'Hide Online';
+  toggleOnlineBtn.classList.remove('active');
 });

@@ -132,6 +132,8 @@ body {
 }
 
 .toolbar-btn:hover { background: #e5e7eb; }
+.toolbar-btn.active { background: #2563eb; color: #fff; border-color: #1d4ed8; }
+.toolbar-btn.active:hover { background: #1d4ed8; }
 
 .schedule-body {
   display: flex;
@@ -249,6 +251,42 @@ body {
   padding-left: 10px;
 }
 
+/* ── Level groups (within dept groups) ── */
+.level-group {
+  margin-bottom: 1px;
+}
+
+.level-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 2px 3px;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.level-header:hover { background: #f3f4f6; }
+
+.level-arrow {
+  font-size: 9px;
+  color: #b0b7c3;
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.level-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  flex: 1;
+  letter-spacing: 0.03em;
+}
+
+.level-body {
+  padding-left: 10px;
+}
+
 .sidebar-ctrl-btn {
   flex: 1;
   font-size: 11px;
@@ -274,6 +312,23 @@ body {
 }
 
 .course-filter-row:hover { background: #f3f4f6; }
+
+.inst-print-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 1.5;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.course-filter-row:hover .inst-print-btn { opacity: 1; }
+.inst-print-btn:hover { background: #2563eb; color: #fff; border-color: #1d4ed8; }
 
 input[type="color"].course-color-input {
   -webkit-appearance: none;

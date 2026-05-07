@@ -1,6 +1,7 @@
 window.ScheduleApp = window.ScheduleApp || {};
 
 ScheduleApp.renderOnlinePanel = function(container, schedule) {
+  var wasUserHidden = container.dataset.userHidden === 'true';
   container.innerHTML = '';
 
   var onlineSections = schedule.sections.filter(function(s) {
@@ -12,7 +13,13 @@ ScheduleApp.renderOnlinePanel = function(container, schedule) {
     container.classList.add('hidden');
     return;
   }
-  container.classList.remove('hidden');
+
+  if (wasUserHidden) {
+    container.dataset.userHidden = 'true';
+    container.classList.add('hidden');
+  } else {
+    container.classList.remove('hidden');
+  }
 
   var heading = document.createElement('div');
   heading.className = 'online-panel-heading';

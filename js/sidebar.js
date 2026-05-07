@@ -1,6 +1,17 @@
 window.ScheduleApp = window.ScheduleApp || {};
 
 ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRemove) {
+  // Snapshot filter states before clearing so they survive a re-render (e.g. Add File).
+  // hasPrevState distinguishes a re-render (add/remove file) from a first load.
+  var prevCourse = {}, prevInst = {}, hasPrevState = false;
+  container.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+    prevCourse[cb.dataset.course] = cb.checked;
+    hasPrevState = true;
+  });
+  container.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+    prevInst[cb.dataset.instructor] = cb.checked;
+  });
+
   container.innerHTML = '';
 
   // ── Loaded Files (collapsible, open by default) ──
@@ -56,9 +67,11 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
     courseDeptMap[courseDeptOrder[d]].sort(function(a, b) { return a.number.localeCompare(b.number); });
   }
 
-  var courseSection = makeSection('Filter Courses', true);
+  var defaultOpen  = !loadedSchedules || loadedSchedules.length <= 1;
+
+  var courseSection = makeSection('Filter Courses', defaultOpen);
   for (var d = 0; d < courseDeptOrder.length; d++) {
-    courseSection.body.appendChild(makeCourseDeptGroup(courseDeptOrder[d], courseDeptMap[courseDeptOrder[d]]));
+    courseSection.body.appendChild(makeCourseDeptGroup(courseDeptOrder[d], courseDeptMap[courseDeptOrder[d]], defaultOpen));
   }
   container.appendChild(courseSection.el);
 
@@ -89,6 +102,15 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
     }
     if (!instByDept[primaryDept]) { instByDept[primaryDept] = []; instDeptOrder.push(primaryDept); }
     instByDept[primaryDept].push(inst);
+  }
+
+  // Map each instructor to their course numbers (used by the print shortcut)
+  var instToCourses = {};
+  for (var i = 0; i < schedule.sections.length; i++) {
+    var s = schedule.sections[i];
+    if (!s.instructor) continue;
+    if (!instToCourses[s.instructor]) instToCourses[s.instructor] = {};
+    instToCourses[s.instructor][s.courseNumber] = true;
   }
 
   instDeptOrder.sort();
@@ -122,10 +144,50 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
   });
 
   for (var d = 0; d < instDeptOrder.length; d++) {
-    instSection.body.appendChild(makeInstDeptGroup(instDeptOrder[d], instByDept[instDeptOrder[d]]));
+    instSection.body.appendChild(makeInstDeptGroup(instDeptOrder[d], instByDept[instDeptOrder[d]], instToCourses));
   }
 
   container.appendChild(instSection.el);
+
+  // Restore previous states. On a re-render (hasPrevState), new courses default to
+  // unchecked and new instructors default to checked.
+  if (hasPrevState) {
+    container.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+      cb.checked = (cb.dataset.course in prevCourse) ? prevCourse[cb.dataset.course] : false;
+      var nameSpan = cb.parentElement.querySelector('.course-filter-name');
+      if (nameSpan) nameSpan.classList.toggle('muted', !cb.checked);
+    });
+    container.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+      if (cb.dataset.instructor in prevInst) {
+        cb.checked = prevInst[cb.dataset.instructor];
+        var nameSpan = cb.parentElement.querySelector('.instructor-filter-name');
+        if (nameSpan) nameSpan.classList.toggle('muted', !cb.checked);
+      }
+      // New instructors stay checked (initialized that way above)
+    });
+  } else {
+    // First load — restore filter states from localStorage if available
+    try {
+      container.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+        var stored = localStorage.getItem('sv_course_vis_' + cb.dataset.course);
+        if (stored !== null) {
+          cb.checked = stored === '1';
+          var nameSpan = cb.parentElement.querySelector('.course-filter-name');
+          if (nameSpan) nameSpan.classList.toggle('muted', !cb.checked);
+        }
+      });
+      container.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+        var stored = localStorage.getItem('sv_inst_vis_' + cb.dataset.instructor);
+        if (stored !== null) {
+          cb.checked = stored === '1';
+          var nameSpan = cb.parentElement.querySelector('.instructor-filter-name');
+          if (nameSpan) nameSpan.classList.toggle('muted', !cb.checked);
+        }
+      });
+    } catch(e) {}
+  }
+  applyAllVisibility();
+  ScheduleApp.relayoutVisible();
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -164,8 +226,8 @@ function makeSection(title, open) {
   return { el: el, body: body };
 }
 
-function makeCourseDeptGroup(dept, courses) {
-  var el   = makeDeptShell(dept, courses.length);
+function makeCourseDeptGroup(dept, courses, open) {
+  var el      = makeDeptShell(dept, courses.length, open);
   var allBtn  = el.allBtn;
   var noneBtn = el.noneBtn;
   var body    = el.body;
@@ -186,54 +248,133 @@ function makeCourseDeptGroup(dept, courses) {
     ScheduleApp.relayoutVisible();
   });
 
+  // Group courses by level; only add level sub-groups when multiple levels exist
+  var levelMap = {}, levelOrder = [];
   for (var i = 0; i < courses.length; i++) {
-    (function(course) {
-      var row = document.createElement('div');
-      row.className = 'course-filter-row';
+    var lvl = levelFromCourse(courses[i].number);
+    if (!levelMap[lvl]) { levelMap[lvl] = []; levelOrder.push(lvl); }
+    levelMap[lvl].push(courses[i]);
+  }
+  levelOrder.sort(function(a, b) { return parseInt(a) - parseInt(b); });
 
-      var colorInput = document.createElement('input');
-      colorInput.type = 'color';
-      colorInput.className = 'course-color-input';
-      colorInput.value = ScheduleApp.getCourseColor(course.number);
-      colorInput.title = 'Change color for ' + course.number;
-
-      var checkLabel = document.createElement('label');
-      checkLabel.className = 'course-filter-check-label';
-
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.className = 'course-filter-cb';
-      cb.dataset.course = course.number;
-      cb.checked = true;
-
-      var nameSpan = document.createElement('span');
-      nameSpan.className = 'course-filter-name';
-      nameSpan.textContent = course.number;
-      nameSpan.title = course.name;
-
-      checkLabel.appendChild(cb);
-      checkLabel.appendChild(nameSpan);
-      row.appendChild(colorInput);
-      row.appendChild(checkLabel);
-      body.appendChild(row);
-
-      cb.addEventListener('change', function() {
-        nameSpan.classList.toggle('muted', !cb.checked);
-        applyAllVisibility();
-        ScheduleApp.relayoutVisible();
-      });
-
-      colorInput.addEventListener('input', function() {
-        ScheduleApp.setCourseColor(course.number, colorInput.value);
-        applyColor(course.number, colorInput.value);
-      });
-    })(courses[i]);
+  if (levelOrder.length > 1) {
+    for (var l = 0; l < levelOrder.length; l++) {
+      body.appendChild(makeLevelGroup(levelOrder[l], levelMap[levelOrder[l]], open));
+    }
+  } else {
+    for (var i = 0; i < courses.length; i++) {
+      body.appendChild(makeCourseRow(courses[i]));
+    }
   }
 
   return el.el;
 }
 
-function makeInstDeptGroup(dept, instructors) {
+function makeLevelGroup(level, courses, open) {
+  var el = document.createElement('div');
+  el.className = 'level-group';
+
+  var header = document.createElement('div');
+  header.className = 'level-header';
+
+  var arrow = document.createElement('span');
+  arrow.className = 'level-arrow';
+  arrow.textContent = '▼';
+
+  var nameEl = document.createElement('span');
+  nameEl.className = 'level-name';
+  nameEl.textContent = level;
+
+  var allBtn  = makeCtrlBtn('All');
+  var noneBtn = makeCtrlBtn('None');
+  allBtn.className  += ' dept-btn';
+  noneBtn.className += ' dept-btn';
+
+  header.appendChild(arrow);
+  header.appendChild(nameEl);
+  header.appendChild(allBtn);
+  header.appendChild(noneBtn);
+  el.appendChild(header);
+
+  var body = document.createElement('div');
+  body.className = 'level-body';
+  if (open === false) { body.style.display = 'none'; arrow.textContent = '▶'; }
+  el.appendChild(body);
+
+  header.addEventListener('click', function(e) {
+    if (e.target === allBtn || e.target === noneBtn) return;
+    var isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+    arrow.textContent = isOpen ? '▶' : '▼';
+  });
+
+  allBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    body.querySelectorAll('.course-filter-cb').forEach(function(cb) { cb.checked = true; });
+    body.querySelectorAll('.course-filter-name').forEach(function(n) { n.classList.remove('muted'); });
+    applyAllVisibility();
+    ScheduleApp.relayoutVisible();
+  });
+
+  noneBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    body.querySelectorAll('.course-filter-cb').forEach(function(cb) { cb.checked = false; });
+    body.querySelectorAll('.course-filter-name').forEach(function(n) { n.classList.add('muted'); });
+    applyAllVisibility();
+    ScheduleApp.relayoutVisible();
+  });
+
+  for (var i = 0; i < courses.length; i++) {
+    body.appendChild(makeCourseRow(courses[i]));
+  }
+
+  return el;
+}
+
+function makeCourseRow(course) {
+  var row = document.createElement('div');
+  row.className = 'course-filter-row';
+
+  var colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.className = 'course-color-input';
+  colorInput.value = ScheduleApp.getCourseColor(course.number);
+  colorInput.title = 'Change color for ' + course.number;
+
+  var checkLabel = document.createElement('label');
+  checkLabel.className = 'course-filter-check-label';
+
+  var cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.className = 'course-filter-cb';
+  cb.dataset.course = course.number;
+  cb.checked = true;
+
+  var nameSpan = document.createElement('span');
+  nameSpan.className = 'course-filter-name';
+  nameSpan.textContent = course.number;
+  nameSpan.title = course.name;
+
+  checkLabel.appendChild(cb);
+  checkLabel.appendChild(nameSpan);
+  row.appendChild(colorInput);
+  row.appendChild(checkLabel);
+
+  cb.addEventListener('change', function() {
+    nameSpan.classList.toggle('muted', !cb.checked);
+    applyAllVisibility();
+    ScheduleApp.relayoutVisible();
+  });
+
+  colorInput.addEventListener('input', function() {
+    ScheduleApp.setCourseColor(course.number, colorInput.value);
+    applyColor(course.number, colorInput.value);
+  });
+
+  return row;
+}
+
+function makeInstDeptGroup(dept, instructors, instToCourses) {
   var el   = makeDeptShell(dept, instructors.length);
   var allBtn  = el.allBtn;
   var noneBtn = el.noneBtn;
@@ -276,6 +417,58 @@ function makeInstDeptGroup(dept, instructors) {
       checkLabel.appendChild(cb);
       checkLabel.appendChild(nameSpan);
       row.appendChild(checkLabel);
+
+      var printBtn = document.createElement('button');
+      printBtn.className = 'inst-print-btn';
+      printBtn.textContent = 'Print';
+      printBtn.title = 'Print ' + inst + "'s schedule";
+      printBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        // Snapshot current filter state
+        var snapCourse = {}, snapInst = {};
+        document.querySelectorAll('.course-filter-cb').forEach(function(c) { snapCourse[c.dataset.course] = c.checked; });
+        document.querySelectorAll('.instructor-filter-cb').forEach(function(c) { snapInst[c.dataset.instructor] = c.checked; });
+
+        // Apply instructor-only filter without touching localStorage
+        var myCourses = (instToCourses && instToCourses[inst]) || {};
+        ScheduleApp._suppressPersist = true;
+        document.querySelectorAll('.course-filter-cb').forEach(function(c) {
+          var on = !!myCourses[c.dataset.course];
+          c.checked = on;
+          var ns = c.parentElement.querySelector('.course-filter-name');
+          if (ns) ns.classList.toggle('muted', !on);
+        });
+        document.querySelectorAll('.instructor-filter-cb').forEach(function(c) {
+          var on = c.dataset.instructor === inst;
+          c.checked = on;
+          var ns = c.parentElement.querySelector('.instructor-filter-name');
+          if (ns) ns.classList.toggle('muted', !on);
+        });
+        applyAllVisibility();
+        ScheduleApp.relayoutVisible();
+
+        ScheduleApp.printNow(null, function() {
+          // Restore previous filter state
+          document.querySelectorAll('.course-filter-cb').forEach(function(c) {
+            var on = (c.dataset.course in snapCourse) ? snapCourse[c.dataset.course] : true;
+            c.checked = on;
+            var ns = c.parentElement.querySelector('.course-filter-name');
+            if (ns) ns.classList.toggle('muted', !on);
+          });
+          document.querySelectorAll('.instructor-filter-cb').forEach(function(c) {
+            var on = (c.dataset.instructor in snapInst) ? snapInst[c.dataset.instructor] : true;
+            c.checked = on;
+            var ns = c.parentElement.querySelector('.instructor-filter-name');
+            if (ns) ns.classList.toggle('muted', !on);
+          });
+          ScheduleApp._suppressPersist = false;
+          applyAllVisibility();
+          ScheduleApp.relayoutVisible();
+        });
+      });
+      row.appendChild(printBtn);
+
       body.appendChild(row);
 
       cb.addEventListener('change', function() {
@@ -290,7 +483,7 @@ function makeInstDeptGroup(dept, instructors) {
 }
 
 // Shared dept group shell (header + collapsible body). Returns { el, body, allBtn, noneBtn }.
-function makeDeptShell(dept, count) {
+function makeDeptShell(dept, count, open) {
   var el = document.createElement('div');
   el.className = 'dept-group';
 
@@ -323,6 +516,7 @@ function makeDeptShell(dept, count) {
 
   var body = document.createElement('div');
   body.className = 'dept-body';
+  if (open === false) { body.style.display = 'none'; arrow.textContent = '▶'; }
   el.appendChild(body);
 
   header.addEventListener('click', function(e) {
@@ -347,6 +541,15 @@ function deptFromCourse(courseNumber) {
   return m ? m[1].toUpperCase() : 'OTHER';
 }
 
+function levelFromCourse(courseNumber) {
+  var m = courseNumber.match(/(\d+)/);
+  if (!m) return 'Other';
+  var n = parseInt(m[1]);
+  if (n >= 1000) return (Math.floor(n / 1000) * 1000) + 's';
+  if (n >= 100)  return (Math.floor(n / 100)  * 100)  + 's';
+  return n + 's';
+}
+
 function applyAllVisibility() {
   var courseVisible = {};
   document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
@@ -368,8 +571,9 @@ function applyAllVisibility() {
   });
 
   // Hide the online panel when all its cards are filtered out; restore it when any become visible.
+  // If the user has explicitly hidden it via the toolbar toggle, leave it hidden regardless.
   var onlinePanel = document.getElementById('online-panel');
-  if (onlinePanel) {
+  if (onlinePanel && onlinePanel.dataset.userHidden !== 'true') {
     var cards = onlinePanel.querySelectorAll('.online-card');
     if (cards.length > 0) {
       var anyVisible = false;
@@ -378,6 +582,18 @@ function applyAllVisibility() {
       }
       onlinePanel.classList.toggle('hidden', !anyVisible);
     }
+  }
+
+  // Persist current filter states (suppressed during instructor print shortcut)
+  if (!ScheduleApp._suppressPersist) {
+    try {
+      document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+        localStorage.setItem('sv_course_vis_' + cb.dataset.course, cb.checked ? '1' : '0');
+      });
+      document.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+        localStorage.setItem('sv_inst_vis_' + cb.dataset.instructor, cb.checked ? '1' : '0');
+      });
+    } catch(e) {}
   }
 }
 

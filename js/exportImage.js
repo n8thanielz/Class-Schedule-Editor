@@ -10,8 +10,10 @@ document.getElementById('export-pdf-btn').addEventListener('click', function() {
   var filename = (titleEl ? titleEl.textContent : 'schedule')
     .replace(/[^a-z0-9 _-]/gi, '_').trim() + '.pdf';
 
+  var isLandscape = ScheduleApp.shouldUseLandscape();
+
   btn.disabled    = true;
-  btn.textContent = 'Exporting…';
+  btn.textContent = isLandscape ? 'Exporting (Landscape)…' : 'Exporting…';
 
   // Hide elements not wanted in the export
   sidebar.style.display        = 'none';
@@ -21,7 +23,7 @@ document.getElementById('export-pdf-btn').addEventListener('click', function() {
   scheduleView.style.minHeight = '0';
   scheduleBody.style.display   = 'block';
 
-  var result = ScheduleApp.applyExportTransform();
+  var result = ScheduleApp.applyExportTransform(isLandscape);
 
   scheduleView.style.width    = result.availW + 'px';
   scheduleView.style.height   = result.totalH + 'px';
@@ -49,7 +51,7 @@ document.getElementById('export-pdf-btn').addEventListener('click', function() {
       image:       { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0,
                      width: result.availW, height: result.totalH },
-      jsPDF:       { unit: 'in', format: 'letter', orientation: 'portrait' }
+      jsPDF:       { unit: 'in', format: 'letter', orientation: isLandscape ? 'landscape' : 'portrait' }
     })
     .from(scheduleView)
     .save()

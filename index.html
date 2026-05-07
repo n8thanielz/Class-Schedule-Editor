@@ -15,7 +15,7 @@
         <p>Upload a class schedule PDF or CSV to generate a visual schedule</p>
         <label class="upload-btn" for="pdf-input">
           Choose File
-          <input type="file" id="pdf-input" accept=".pdf,.csv" />
+          <input type="file" id="pdf-input" accept=".pdf,.csv" multiple />
         </label>
         <div id="upload-error" class="upload-error hidden"></div>
         <div id="upload-loading" class="upload-loading hidden">
@@ -31,6 +31,7 @@
         <div class="toolbar-actions">
           <button id="export-btn" class="toolbar-btn">Print</button>
           <button id="export-pdf-btn" class="toolbar-btn">Export PDF</button>
+          <button id="toggle-online-btn" class="toolbar-btn">Hide Online</button>
           <button id="add-file-btn" class="toolbar-btn hidden">+ Add File</button>
           <input type="file" id="add-file-input" accept=".pdf,.csv" style="display:none" />
           <button id="new-upload-btn" class="toolbar-btn">↑ Upload New</button>
