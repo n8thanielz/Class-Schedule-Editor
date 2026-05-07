@@ -37,8 +37,9 @@ ScheduleApp.renderOnlinePanel = function(container, schedule) {
 
     var card = document.createElement('div');
     card.className = 'online-card';
-    card.dataset.course    = s.courseNumber;
-    card.dataset.sectionId = s.id;
+    card.dataset.course      = s.courseNumber;
+    card.dataset.sectionId   = s.id;
+    card.dataset.instructor  = s.instructor;
     card.style.background  = ScheduleApp.getCourseColor(s.courseNumber);
     card.title = [
       s.courseNumber + ' – ' + s.courseName,

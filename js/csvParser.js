@@ -237,8 +237,10 @@ ScheduleApp.parseCSV = function(file) {
         }
 
         resolve({
-          semester: semPrefix + (dept || 'Course') + ' All Class Schedule',
-          sections: sections
+          semester:  semPrefix + (dept || 'Course') + ' All Class Schedule',
+          sections:  sections,
+          dept:      dept || null,
+          semPrefix: semPrefix.trim()
         });
       } catch (err) {
         reject(err);

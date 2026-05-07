@@ -48,6 +48,7 @@ ScheduleApp.renderSchedule = function(container, schedule) {
   var timeGutter = el('div', 'time-gutter');
   timeGutter.style.height = SA.GRID_HEIGHT + 'px';
   container.appendChild(timeGutter);
+  SA._timeGutter = timeGutter;
 
   // ── Day columns ──────────────────────────────────────────────
   var dayColumns = {};
@@ -100,8 +101,10 @@ ScheduleApp.renderSchedule = function(container, schedule) {
       var timeStr  = SA.formatTime(s.startTime) + '–' + SA.formatTime(s.endTime);
 
       var block = el('div', 'course-block');
-      block.dataset.course    = s.courseNumber;
-      block.dataset.sectionId = s.id;
+      block.dataset.course      = s.courseNumber;
+      block.dataset.sectionId   = s.id;
+      block.dataset.instructor  = s.instructor;
+      block.dataset.startTime   = s.startTime;
       block.style.top    = Math.max(0, top) + 'px';
       block.style.height = height + 'px';
       block.style.left   = (lyt.left * 100).toFixed(2) + '%';
@@ -167,20 +170,78 @@ ScheduleApp.relayoutVisible = function() {
   var SA = ScheduleApp;
   if (!SA._activeSections || !SA._dayColumns || !SA._usedDays) return;
 
-  // Which courses are currently checked
-  var visible = {};
+  // ── Determine visibility ──────────────────────────────────────────────────
+  var courseVisible = {};
   document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
-    visible[cb.dataset.course] = cb.checked;
+    courseVisible[cb.dataset.course] = cb.checked;
   });
 
-  // Determine which days still have at least one visible section
+  var instVisible = {};
+  var instFilterExists = document.querySelector('.instructor-filter-cb') !== null;
+  if (instFilterExists) {
+    document.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+      instVisible[cb.dataset.instructor] = cb.checked;
+    });
+  }
+
+  function isSectionVisible(s) {
+    var courseOk = !!courseVisible[s.courseNumber];
+    var instOk   = !instFilterExists || instVisible[s.instructor] !== false;
+    return courseOk && instOk;
+  }
+
+  // ── Refit time range to visible sections ─────────────────────────────────
+  SA.fitGridToSections(SA._activeSections.filter(isSectionVisible));
+
+  // Update gutter + column heights
+  if (SA._timeGutter) SA._timeGutter.style.height = SA.GRID_HEIGHT + 'px';
+  for (var d = 0; d < SA._usedDays.length; d++) {
+    var dc = SA._dayColumns[SA._usedDays[d]];
+    if (dc) dc.style.height = SA.GRID_HEIGHT + 'px';
+  }
+
+  // Rebuild time labels
+  if (SA._timeGutter) {
+    var oldLabels = SA._timeGutter.querySelectorAll('.time-label');
+    for (var i = 0; i < oldLabels.length; i++) oldLabels[i].parentNode.removeChild(oldLabels[i]);
+  }
+
+  // Rebuild gridlines
+  for (var d = 0; d < SA._usedDays.length; d++) {
+    var dc = SA._dayColumns[SA._usedDays[d]];
+    if (!dc) continue;
+    var oldLines = dc.querySelectorAll('.gridline');
+    for (var i = 0; i < oldLines.length; i++) oldLines[i].parentNode.removeChild(oldLines[i]);
+  }
+
+  // Re-add time labels and gridlines for new range
+  for (var min = SA.GRID_START; min <= SA.GRID_END; min += 30) {
+    var top    = (min - SA.GRID_START) * SA.PX_PER_MIN;
+    var isHour = (min % 60 === 0);
+
+    if (SA._timeGutter) {
+      var lbl = el('span', 'time-label');
+      lbl.style.top  = top + 'px';
+      lbl.textContent = SA.minutesToDisplay(min);
+      SA._timeGutter.appendChild(lbl);
+    }
+
+    for (var d = 0; d < SA._usedDays.length; d++) {
+      var dc = SA._dayColumns[SA._usedDays[d]];
+      if (!dc) continue;
+      var line = el('div', isHour ? 'gridline hour' : 'gridline');
+      line.style.top = top + 'px';
+      dc.appendChild(line);
+    }
+  }
+
+  // ── Show/hide day columns ─────────────────────────────────────────────────
   var visibleDays = SA._usedDays.filter(function(day) {
     return SA._activeSections.some(function(s) {
-      return s.days.indexOf(day) !== -1 && visible[s.courseNumber];
+      return s.days.indexOf(day) !== -1 && isSectionVisible(s);
     });
   });
 
-  // Show/hide headers and columns; update grid template to match
   SA._usedDays.forEach(function(day) {
     var show = visibleDays.indexOf(day) !== -1;
     SA._dayColumns[day].style.display = show ? '' : 'none';
@@ -189,18 +250,16 @@ ScheduleApp.relayoutVisible = function() {
   SA._gridContainer.style.gridTemplateColumns =
     '70px repeat(' + visibleDays.length + ', 1fr)';
 
-  // Re-run block layout for each day
+  // ── Re-run block layout per day ───────────────────────────────────────────
   for (var d = 0; d < SA._usedDays.length; d++) {
     var day = SA._usedDays[d];
     var col = SA._dayColumns[day];
 
     var daySections = SA._activeSections.filter(function(s) {
-      return s.days.indexOf(day) !== -1 && visible[s.courseNumber];
+      return s.days.indexOf(day) !== -1 && isSectionVisible(s);
     });
 
     var layouts = SA.layoutDayBlocks(daySections);
-
-    // Build id → layout map
     var map = {};
     for (var k = 0; k < layouts.length; k++) {
       map[layouts[k].section.id] = layouts[k];
@@ -208,13 +267,13 @@ ScheduleApp.relayoutVisible = function() {
 
     var blocks = col.querySelectorAll('.course-block');
     for (var b = 0; b < blocks.length; b++) {
-      var block  = blocks[b];
-      var lyt    = map[block.dataset.sectionId];
+      var block = blocks[b];
+      var lyt   = map[block.dataset.sectionId];
+      block.style.top = Math.max(0, SA.timeToPx(block.dataset.startTime)) + 'px';
       if (lyt) {
         block.style.left  = (lyt.left  * 100).toFixed(2) + '%';
         block.style.width = (lyt.width * 100).toFixed(2) + '%';
       } else {
-        // Hidden course: reset so it's correct if shown again later
         block.style.left  = '0%';
         block.style.width = '100%';
       }

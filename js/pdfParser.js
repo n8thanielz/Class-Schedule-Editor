@@ -40,8 +40,13 @@ function parseInstructor(raw) {
     .replace(/\[Primary\s*Instructor\]/gi, '')
     .replace(/\[.*?\]/g, '')
     .trim();
-  var lastName = clean.split(',')[0].split(';')[0].trim();
-  return toTitleCase(lastName);
+  var entry     = clean.split(';')[0].trim();
+  if (!entry) return 'Staff';
+  var parts     = entry.split(',');
+  var lastName  = toTitleCase(parts[0].trim());
+  if (parts.length < 2 || !parts[1].trim()) return lastName;
+  var firstName = toTitleCase(parts[1].trim());
+  return firstName + ' ' + lastName;
 }
 
 function parseRoom(raw) {
@@ -87,7 +92,11 @@ function parseSemesterTitle(lines) {
     if (semLabel && dept) break;
   }
   var prefix = semLabel ? semLabel + ' ' : '';
-  return prefix + (dept || 'Course') + ' All Class Schedule';
+  return {
+    semester:  prefix + (dept || 'Course') + ' All Class Schedule',
+    dept:      dept || null,
+    semPrefix: semLabel || ''
+  };
 }
 
 // PDF text extraction — outputs "leftText\x01rightText" per line
@@ -151,7 +160,8 @@ ScheduleApp.extractLines = async function(file) {
 
 // Line parser
 ScheduleApp.parseLines = function(lines) {
-  var semester = parseSemesterTitle(lines);
+  var info = parseSemesterTitle(lines);
+  var semester = info.semester;
   var sections = [];
   var currentCourse = null;
   var i = 0;
@@ -365,7 +375,7 @@ ScheduleApp.parseLines = function(lines) {
     }
   }
 
-  return { semester: semester, sections: sections };
+  return { semester: semester, sections: sections, dept: info.dept, semPrefix: info.semPrefix };
 };
 
 // Public API

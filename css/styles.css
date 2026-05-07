@@ -164,9 +164,89 @@ body {
 
 .sidebar-controls {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+/* ── Collapsible sidebar sections ── */
+.sidebar-section {
+  margin-bottom: 4px;
+}
+
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 3px 3px;
+  border-radius: 4px;
+  user-select: none;
+  margin-bottom: 2px;
+}
+
+.sidebar-section-toggle:hover { background: #f3f4f6; }
+
+.section-arrow {
+  font-size: 9px;
+  color: #9ca3af;
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-section-body {
+  padding-left: 2px;
+}
+
+/* ── Department groups ── */
+.dept-group {
+  margin-bottom: 2px;
+}
+
+.dept-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 2px 3px;
+  border-radius: 4px;
+  user-select: none;
+  margin-bottom: 1px;
+}
+
+.dept-header:hover { background: #f3f4f6; }
+
+.dept-arrow {
+  font-size: 9px;
+  color: #9ca3af;
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.dept-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dept-count {
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.dept-btn {
+  flex: none !important;
+  padding: 2px 7px !important;
+  font-size: 10px !important;
+}
+
+.dept-body {
+  padding-left: 10px;
 }
 
 .sidebar-ctrl-btn {
@@ -240,6 +320,64 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 }
 
 .course-filter-name.muted { color: #9ca3af; }
+
+/* ── Loaded Files list ── */
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.file-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 3px 3px 3px 6px;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.file-list-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-remove-btn {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+
+.file-remove-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.sidebar-sep {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 8px 0 10px;
+}
 
 .schedule-wrapper {
   flex: 1;
