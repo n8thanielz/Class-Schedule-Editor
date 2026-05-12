@@ -338,6 +338,7 @@ body {
 .sidebar-ctrl-btn:hover { background: #e5e7eb; }
 
 .course-filter-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -348,8 +349,16 @@ body {
 
 .course-filter-row:hover { background: #f3f4f6; }
 
+.inst-row-btns {
+  position: absolute;
+  right: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+}
+
 .inst-print-btn {
-  margin-left: auto;
   flex-shrink: 0;
   padding: 1px 6px;
   font-size: 10px;
@@ -362,8 +371,24 @@ body {
   opacity: 0;
   transition: opacity 0.15s;
 }
-.course-filter-row:hover .inst-print-btn { opacity: 1; }
+.course-filter-row:hover .inst-print-btn,
+.course-filter-row:hover .inst-ical-btn { opacity: 1; }
 .inst-print-btn:hover { background: #2563eb; color: #fff; border-color: #1d4ed8; }
+
+.inst-ical-btn {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 1.5;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.inst-ical-btn:hover { background: #059669; color: #fff; border-color: #047857; }
 
 input[type="color"].course-color-input {
   -webkit-appearance: none;
@@ -702,6 +727,37 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   opacity: 0.70;
 }
 
+/* ── Online Panel: compact mode for print/export ── */
+body.print-compact .online-panel {
+  margin-top: 8px;
+  padding: 8px 12px;
+}
+
+body.print-compact .online-panel-heading {
+  font-size: 9px;
+  margin-bottom: 5px;
+}
+
+body.print-compact .online-cards {
+  gap: 4px;
+}
+
+body.print-compact .online-card {
+  padding: 3px 7px;
+  font-size: 9.5px;
+  line-height: 1.25;
+  min-width: 70px;
+}
+
+body.print-compact .online-card-number {
+  font-size: 10px;
+}
+
+body.print-compact .online-card-room,
+body.print-compact .online-card-dates {
+  font-size: 8px;
+}
+
 /* ── Print / Export ── */
 @page { size: letter portrait; margin: 0.5in; }
 
@@ -746,3 +802,75 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 }
 
 .hidden { display: none !important; }
+
+/* ── iCal Export Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #1a1a2e;
+}
+
+.modal-body {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+
+.modal-body strong { color: #1a1a2e; }
+
+.modal-note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 8px 22px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.modal-btn:hover { background: #e5e7eb; }
+
+.modal-btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.modal-btn-primary:hover { background: #1d4ed8; }
+.modal-btn-primary:disabled { background: #93c5fd; border-color: #93c5fd; cursor: default; }

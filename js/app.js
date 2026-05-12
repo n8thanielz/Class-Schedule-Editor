@@ -11,6 +11,11 @@ var courseSidebar = document.getElementById('course-sidebar');
 var onlinePanel   = document.getElementById('online-panel');
 var newUploadBtn      = document.getElementById('new-upload-btn');
 var toggleOnlineBtn   = document.getElementById('toggle-online-btn');
+var calendarBtn       = document.getElementById('calendar-btn');
+var icalModal         = document.getElementById('ical-modal');
+var icalModalBody     = document.getElementById('ical-modal-body');
+var icalModalConfirm  = document.getElementById('ical-modal-confirm');
+var icalModalCancel   = document.getElementById('ical-modal-cancel');
 
 var loadedSchedules = [];
 
@@ -155,4 +160,67 @@ newUploadBtn.addEventListener('click', function() {
   addFileBtn.classList.add('hidden');
   toggleOnlineBtn.textContent = 'Hide Online';
   toggleOnlineBtn.classList.remove('active');
+});
+
+calendarBtn.addEventListener('click', function() {
+  if (!ScheduleApp._activeSections || !ScheduleApp._activeSections.length) {
+    alert('No schedule loaded.');
+    return;
+  }
+
+  // Determine current filter visibility (mirrors applyAllVisibility logic)
+  var courseVisible = {};
+  document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+    courseVisible[cb.dataset.course] = cb.checked;
+  });
+  var instVisible = {};
+  var instFilterExists = document.querySelector('.instructor-filter-cb') !== null;
+  if (instFilterExists) {
+    document.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+      instVisible[cb.dataset.instructor] = cb.checked;
+    });
+  }
+
+  var visibleSections = ScheduleApp._activeSections.filter(function(s) {
+    var courseOk = courseVisible[s.courseNumber] !== false;
+    var instOk   = !instFilterExists || instVisible[s.instructor] !== false;
+    return courseOk && instOk;
+  });
+
+  var exportable = visibleSections.filter(function(s) {
+    return s.iCalStart && s.iCalEnd;
+  });
+  var skipped = visibleSections.length - exportable.length;
+
+  var html = '<p>This will export <strong>' + exportable.length + ' section' +
+    (exportable.length !== 1 ? 's' : '') + '</strong> from the current view as a calendar file (.ics).</p>';
+
+  if (skipped > 0) {
+    html += '<p class="modal-note">' + skipped + ' section' + (skipped !== 1 ? 's' : '') +
+      ' will be skipped — no date range data available. Date ranges are included in CSV exports but not PDF exports.</p>';
+  }
+
+  html += '<p>Each event repeats weekly for its full session date range and includes the instructor and room.</p>';
+
+  icalModalBody.innerHTML = html;
+  icalModalConfirm.disabled = exportable.length === 0;
+
+  icalModal._exportable = exportable;
+  icalModal._semId  = ScheduleApp._semId || '';
+  icalModal._title  = scheduleTitle.textContent;
+
+  icalModal.classList.remove('hidden');
+});
+
+icalModalConfirm.addEventListener('click', function() {
+  icalModal.classList.add('hidden');
+  ScheduleApp.exportGridICal(icalModal._exportable, icalModal._semId, icalModal._title);
+});
+
+icalModalCancel.addEventListener('click', function() {
+  icalModal.classList.add('hidden');
+});
+
+icalModal.addEventListener('click', function(e) {
+  if (e.target === icalModal) icalModal.classList.add('hidden');
 });

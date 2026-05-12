@@ -36,6 +36,16 @@ function csvDateRange(str) {
   return (+m[1]) + '/' + (+m[2]) + '–' + (+m[3]) + '/' + (+m[4]);
 }
 
+// Parse "(MM/DD/YY to MM/DD/YY)" or "(MM/DD/YYYY to MM/DD/YYYY)" → { start: 'YYYYMMDD', end: 'YYYYMMDD' }
+function csvICalDates(str) {
+  if (!str) return null;
+  var m = str.match(/\((\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+to\s+(\d{1,2})\/(\d{1,2})\/(\d{2,4})\)/);
+  if (!m) return null;
+  function p(n) { var i = parseInt(n); return i < 10 ? '0' + i : '' + i; }
+  function y4(yr) { var n = parseInt(yr); return '' + (n < 100 ? 2000 + n : n); }
+  return { start: y4(m[3]) + p(m[1]) + p(m[2]), end: y4(m[6]) + p(m[4]) + p(m[5]) };
+}
+
 function csvSecType(raw) {
   return CSV_SEC_TYPE[(raw || '').toLowerCase().trim()] || (raw || 'LEC').slice(0, 3).toUpperCase();
 }
@@ -136,6 +146,7 @@ ScheduleApp.parseCSV = function(file) {
           var instRaw     = col(row, 'Instructor');
           var roomRaw     = col(row, 'Room');
           var instMethod  = col(row, 'Inst. Method');
+          var iCalDates   = csvICalDates(col(row, 'Session')) || csvICalDates(meetingsStr);
 
           var instructor  = parseInstructor(instRaw);
           var doesNotMeet = /^Does Not Meet/i.test(meetPat);
@@ -155,6 +166,8 @@ ScheduleApp.parseCSV = function(file) {
               isOnline:      isOnline,
               doesNotMeet:   true,
               dateRange:     csvDateRange(meetingsStr),
+              iCalStart:     iCalDates ? iCalDates.start : null,
+              iCalEnd:       iCalDates ? iCalDates.end   : null,
               notes:         ''
             });
             continue;
@@ -205,7 +218,7 @@ ScheduleApp.parseCSV = function(file) {
               sectionNumber: secNum, type: type, instructor: instructor,
               days: [], startTime: '', endTime: '',
               room: parseRoom(roomRaw), isOnline: false, doesNotMeet: true,
-              dateRange: '', notes: ''
+              dateRange: '', iCalStart: null, iCalEnd: null, notes: ''
             });
             continue;
           }
@@ -231,6 +244,8 @@ ScheduleApp.parseCSV = function(file) {
               isOnline:      /^ONLINE$/i.test(sess.room),
               doesNotMeet:   false,
               dateRange:     sess.dateRange,
+              iCalStart:     iCalDates ? iCalDates.start : null,
+              iCalEnd:       iCalDates ? iCalDates.end   : null,
               notes:         notes.join(', ')
             });
           }

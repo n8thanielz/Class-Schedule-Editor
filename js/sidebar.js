@@ -104,6 +104,11 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
     instByDept[primaryDept].push(inst);
   }
 
+  // Store semester ID for use in iCal filenames
+  ScheduleApp._semId = loadedSchedules && loadedSchedules.length > 0 && loadedSchedules[0].semPrefix
+    ? loadedSchedules[0].semPrefix.replace(/\s+/g, '')
+    : '';
+
   // Map each instructor to their course numbers (used by the print shortcut)
   var instToCourses = {};
   for (var i = 0; i < schedule.sections.length; i++) {
@@ -467,7 +472,20 @@ function makeInstDeptGroup(dept, instructors, instToCourses) {
           ScheduleApp.relayoutVisible();
         });
       });
-      row.appendChild(printBtn);
+      var icalBtn = document.createElement('button');
+      icalBtn.className = 'inst-ical-btn';
+      icalBtn.textContent = 'iCal';
+      icalBtn.title = 'Export ' + inst + "'s schedule as iCal (.ics)";
+      icalBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        ScheduleApp.exportInstructorICal(inst, ScheduleApp._activeSections || [], ScheduleApp._semId || '');
+      });
+
+      var btnGroup = document.createElement('div');
+      btnGroup.className = 'inst-row-btns';
+      btnGroup.appendChild(printBtn);
+      btnGroup.appendChild(icalBtn);
+      row.appendChild(btnGroup);
 
       body.appendChild(row);
 

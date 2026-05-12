@@ -43,6 +43,9 @@ ScheduleApp.applyExportTransform = function(isLandscape) {
   var availH    = PAGE_H - 2 * MARGIN_PX;
   var GAP       = 14;
 
+  // Apply compact styles before measuring so panel height reflects the smaller cards
+  document.body.classList.add('print-compact');
+
   if (!onlinePanel.classList.contains('hidden')) {
     onlinePanel.style.width = availW + 'px';
   }
@@ -80,6 +83,7 @@ ScheduleApp.applyExportTransform = function(isLandscape) {
     if (rawPanelH > 0) { onlinePanel.style.marginTop = ''; onlinePanel.style.width = ''; }
     scheduleBody.style.overflow = '';
     scheduleBody.style.width    = '';
+    document.body.classList.remove('print-compact');
   }
 
   return {
