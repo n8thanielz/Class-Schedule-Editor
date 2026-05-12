@@ -38,9 +38,44 @@ body {
 
 .upload-card p {
   color: #666;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
   line-height: 1.5;
 }
+
+.upload-instructions {
+  text-align: left;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upload-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.upload-step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.upload-instructions a { color: #2563eb; text-decoration: none; }
+.upload-instructions a:hover { text-decoration: underline; }
 
 .upload-btn {
   display: inline-block;
