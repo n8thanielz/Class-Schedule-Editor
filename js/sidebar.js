@@ -14,6 +14,9 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
 
   container.innerHTML = '';
 
+  // ── Saved Presets ──
+  container.appendChild(makePresetsSection());
+
   // ── Loaded Files (collapsible, open by default) ──
   if (loadedSchedules && loadedSchedules.length > 0) {
     var filesSection = makeSection('Loaded Files', true);
@@ -613,6 +616,149 @@ function applyAllVisibility() {
       });
     } catch(e) {}
   }
+}
+
+// ── Saved Presets ─────────────────────────────────────────────────────────────
+
+function loadPresets() {
+  try { var r = localStorage.getItem('sv_presets'); return r ? JSON.parse(r) : []; } catch(e) { return []; }
+}
+
+function savePresets(presets) {
+  try { localStorage.setItem('sv_presets', JSON.stringify(presets)); } catch(e) {}
+}
+
+function makePresetsSection() {
+  var section = makeSection('Saved Presets', true);
+
+  var list = document.createElement('div');
+  list.className = 'presets-list';
+  section.body.appendChild(list);
+
+  var saveForm = document.createElement('div');
+  saveForm.className = 'preset-save-form hidden';
+
+  var nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'preset-name-input';
+  nameInput.placeholder = 'Preset name…';
+  nameInput.maxLength = 40;
+
+  var confirmBtn = document.createElement('button');
+  confirmBtn.className = 'preset-save-confirm';
+  confirmBtn.textContent = '✓';
+  confirmBtn.title = 'Save';
+
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'preset-save-cancel';
+  cancelBtn.textContent = '✕';
+  cancelBtn.title = 'Cancel';
+
+  saveForm.appendChild(nameInput);
+  saveForm.appendChild(confirmBtn);
+  saveForm.appendChild(cancelBtn);
+  section.body.appendChild(saveForm);
+
+  var addBtn = document.createElement('button');
+  addBtn.className = 'preset-add-btn';
+  addBtn.textContent = '+ Save Current Filters';
+  section.body.appendChild(addBtn);
+
+  function renderList() {
+    list.innerHTML = '';
+    var presets = loadPresets();
+
+    if (!presets.length) {
+      var empty = document.createElement('div');
+      empty.className = 'preset-empty';
+      empty.textContent = 'No saved presets yet.';
+      list.appendChild(empty);
+      return;
+    }
+
+    for (var i = 0; i < presets.length; i++) {
+      (function(preset, idx) {
+        var row = document.createElement('div');
+        row.className = 'preset-row';
+
+        var nameBtn = document.createElement('button');
+        nameBtn.className = 'preset-name-btn';
+        nameBtn.textContent = preset.name;
+        nameBtn.title = 'Apply: ' + preset.name;
+        nameBtn.addEventListener('click', function() { applyPreset(preset); });
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'preset-delete-btn';
+        delBtn.textContent = '×';
+        delBtn.title = 'Delete preset';
+        delBtn.addEventListener('click', function() {
+          var all = loadPresets();
+          all.splice(idx, 1);
+          savePresets(all);
+          renderList();
+        });
+
+        row.appendChild(nameBtn);
+        row.appendChild(delBtn);
+        list.appendChild(row);
+      })(presets[i], i);
+    }
+  }
+
+  function applyPreset(preset) {
+    document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+      var on = preset.courses[cb.dataset.course] === true;
+      cb.checked = on;
+      var ns = cb.parentElement.querySelector('.course-filter-name');
+      if (ns) ns.classList.toggle('muted', !on);
+    });
+    document.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+      cb.checked = true;
+      var ns = cb.parentElement.querySelector('.instructor-filter-name');
+      if (ns) ns.classList.remove('muted');
+    });
+    applyAllVisibility();
+    ScheduleApp.relayoutVisible();
+  }
+
+  function showForm() {
+    saveForm.classList.remove('hidden');
+    addBtn.classList.add('hidden');
+    nameInput.value = '';
+    nameInput.focus();
+  }
+
+  function hideForm() {
+    saveForm.classList.add('hidden');
+    addBtn.classList.remove('hidden');
+  }
+
+  function doSave() {
+    var name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+
+    var courses = {};
+    document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+      courses[cb.dataset.course] = cb.checked;
+    });
+
+    var all = loadPresets();
+    all.push({ id: Date.now().toString(), name: name, courses: courses });
+    savePresets(all);
+    hideForm();
+    renderList();
+  }
+
+  addBtn.addEventListener('click', showForm);
+  confirmBtn.addEventListener('click', doSave);
+  cancelBtn.addEventListener('click', hideForm);
+  nameInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter')  doSave();
+    if (e.key === 'Escape') hideForm();
+  });
+
+  renderList();
+  return section.el;
 }
 
 function applyColor(courseNumber, color) {

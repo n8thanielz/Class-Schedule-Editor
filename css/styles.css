@@ -235,6 +235,140 @@ body {
   padding-left: 2px;
 }
 
+/* ── Saved Presets ── */
+.presets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.preset-empty {
+  font-size: 11px;
+  color: #b0b7c3;
+  padding: 2px 2px 4px;
+}
+
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.preset-name-btn {
+  flex: 1;
+  text-align: left;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.preset-name-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.preset-delete-btn {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-delete-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.preset-save-form {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.preset-name-input {
+  flex: 1;
+  padding: 4px 7px;
+  font-size: 11px;
+  border: 1px solid #93c5fd;
+  border-radius: 4px;
+  outline: none;
+  color: #1a1a2e;
+  min-width: 0;
+}
+
+.preset-name-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+}
+
+.preset-save-confirm,
+.preset-save-cancel {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid;
+}
+
+.preset-save-confirm {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.preset-save-confirm:hover { background: #1d4ed8; }
+
+.preset-save-cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.preset-save-cancel:hover { background: #e5e7eb; }
+
+.preset-add-btn {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.preset-add-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
 /* ── Department groups ── */
 .dept-group {
   margin-bottom: 2px;
