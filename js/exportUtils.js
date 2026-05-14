@@ -59,20 +59,6 @@ ScheduleApp.applyExportTransform = function(isLandscape) {
   var printW     = Math.ceil(availW / scale);
   var scaledH    = Math.ceil(naturalH * scale);
 
-  // Boost font sizes so text renders at a legible print size after the scale transform.
-  // Each element's pre-transform size = (target * BOOST) / scale, so the effective
-  // rendered size = target * BOOST, consistently readable regardless of schedule density.
-  var BOOST = 1.2;
-  var F = function(base) { return (base * BOOST / scale).toFixed(1) + 'px'; };
-  var fontStyle = document.createElement('style');
-  fontStyle.textContent =
-    '#schedule-grid .grid-header{font-size:' + F(13) + '!important}' +
-    '#schedule-grid .time-label{font-size:'  + F(11) + '!important}' +
-    '#schedule-grid .course-block{font-size:'+ F(11) + '!important}' +
-    '#schedule-grid .block-number{font-size:'+ F(12) + '!important}' +
-    '#schedule-grid .block-time,#schedule-grid .block-room,#schedule-grid .block-dates{font-size:' + F(10) + '!important}';
-  document.head.appendChild(fontStyle);
-
   grid.style.transformOrigin = 'top left';
   grid.style.transform       = 'scale(' + scale + ')';
   wrapper.style.width        = printW + 'px';
@@ -97,7 +83,6 @@ ScheduleApp.applyExportTransform = function(isLandscape) {
     if (rawPanelH > 0) { onlinePanel.style.marginTop = ''; onlinePanel.style.width = ''; }
     scheduleBody.style.overflow = '';
     scheduleBody.style.width    = '';
-    document.head.removeChild(fontStyle);
     document.body.classList.remove('print-compact');
   }
 
