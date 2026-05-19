@@ -12,12 +12,20 @@ var onlinePanel   = document.getElementById('online-panel');
 var newUploadBtn      = document.getElementById('new-upload-btn');
 var toggleOnlineBtn   = document.getElementById('toggle-online-btn');
 var calendarBtn       = document.getElementById('calendar-btn');
+var editModeBtn       = document.getElementById('edit-mode-btn');
+var exportCsvBtn      = document.getElementById('export-csv-btn');
+var exportXlsxBtn     = document.getElementById('export-xlsx-btn');
+var addSectionBtn     = document.getElementById('add-section-btn');
 var icalModal         = document.getElementById('ical-modal');
 var icalModalBody     = document.getElementById('ical-modal-body');
 var icalModalConfirm  = document.getElementById('ical-modal-confirm');
 var icalModalCancel   = document.getElementById('ical-modal-cancel');
 
 var loadedSchedules = [];
+
+// Bridge functions for editor modules
+ScheduleApp.getLoadedSchedules = function() { return loadedSchedules; };
+ScheduleApp.triggerRenderAll   = function() { renderAll(); };
 
 function buildTitle() {
   if (!loadedSchedules.length) return 'Schedule';
@@ -34,7 +42,7 @@ function buildTitle() {
 function mergeSchedules() {
   var allSections = [];
   for (var i = 0; i < loadedSchedules.length; i++) {
-    allSections = allSections.concat(loadedSchedules[i].sections);
+    allSections = allSections.concat(loadedSchedules[i].sections.filter(function(s) { return !s._deleted; }));
   }
   return { semester: buildTitle(), sections: allSections };
 }
@@ -43,6 +51,7 @@ function renderAll() {
   var merged = mergeSchedules();
   scheduleTitle.textContent = merged.semester;
   ScheduleApp.renderSchedule(scheduleGrid, merged);
+  ScheduleApp.attachEditorBlockListeners();
 
   // Apply persisted hide-online preference before the panel renders so it
   // picks up wasUserHidden correctly inside renderOnlinePanel.
@@ -72,10 +81,9 @@ function removeFile(index) {
 }
 
 async function loadFile(file) {
-  var isCsv = /\.csv$/i.test(file.name);
-  var schedule = isCsv
-    ? await ScheduleApp.parseCSV(file)
-    : await ScheduleApp.parsePDF(file);
+  var schedule = await ScheduleApp.parseCSV(file);
+  var fi = loadedSchedules.length;
+  schedule.sections.forEach(function(s) { s._fileIndex = fi; });
   loadedSchedules.push(schedule);
 }
 
@@ -150,16 +158,19 @@ toggleOnlineBtn.addEventListener('click', function() {
 });
 
 newUploadBtn.addEventListener('click', function() {
-  loadedSchedules = [];
-  scheduleView.classList.add('hidden');
-  uploadView.classList.remove('hidden');
-  scheduleGrid.innerHTML = '';
-  onlinePanel.innerHTML  = '';
-  delete onlinePanel.dataset.userHidden;
-  courseSidebar.innerHTML = '';
-  addFileBtn.classList.add('hidden');
-  toggleOnlineBtn.textContent = 'Hide Online';
-  toggleOnlineBtn.classList.remove('active');
+  ScheduleApp.promptIfDirty(function() {
+    ScheduleApp.exitEditMode();
+    loadedSchedules = [];
+    scheduleView.classList.add('hidden');
+    uploadView.classList.remove('hidden');
+    scheduleGrid.innerHTML = '';
+    onlinePanel.innerHTML  = '';
+    delete onlinePanel.dataset.userHidden;
+    courseSidebar.innerHTML = '';
+    addFileBtn.classList.add('hidden');
+    toggleOnlineBtn.textContent = 'Hide Online';
+    toggleOnlineBtn.classList.remove('active');
+  });
 });
 
 calendarBtn.addEventListener('click', function() {
@@ -224,3 +235,29 @@ icalModalCancel.addEventListener('click', function() {
 icalModal.addEventListener('click', function(e) {
   if (e.target === icalModal) icalModal.classList.add('hidden');
 });
+
+editModeBtn.addEventListener('click', function() {
+  ScheduleApp.toggleEditMode();
+});
+
+exportCsvBtn.addEventListener('click', function() {
+  ScheduleApp.exportCSVByDept(loadedSchedules);
+});
+
+exportXlsxBtn.addEventListener('click', function() {
+  ScheduleApp.exportXLSX(loadedSchedules);
+});
+
+addSectionBtn.addEventListener('click', function() {
+  ScheduleApp.openSectionModal(null, null);
+});
+
+window.addEventListener('beforeunload', function(e) {
+  if (ScheduleApp._isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+// Init editor modal event listeners once
+ScheduleApp.initEditorModal();

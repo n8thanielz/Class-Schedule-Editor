@@ -1008,3 +1008,170 @@ body.print-compact .online-card-dates {
 
 .modal-btn-primary:hover { background: #1d4ed8; }
 .modal-btn-primary:disabled { background: #93c5fd; border-color: #93c5fd; cursor: default; }
+
+/* ── Edit Mode ── */
+body.edit-mode .course-block {
+  cursor: pointer;
+  outline: 2px solid transparent;
+  transition: opacity 0.15s, box-shadow 0.15s, outline-color 0.15s;
+}
+
+body.edit-mode .course-block:hover {
+  outline-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.20);
+  z-index: 5;
+}
+
+.course-block.dragging {
+  opacity: 0.72;
+  cursor: grabbing !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+  z-index: 50;
+  outline-color: rgba(37, 99, 235, 0.8) !important;
+}
+
+/* ── Section Editor Modal ── */
+.sm-modal-card {
+  max-width: 520px;
+  padding: 28px 32px 24px;
+}
+
+.sm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sm-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sm-form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.sm-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.sm-input,
+.sm-select {
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1a1a2e;
+  background: #fff;
+  outline: none;
+  width: 100%;
+}
+
+.sm-input:focus,
+.sm-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+}
+
+.sm-new-course-fields {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sm-day-picker {
+  display: flex;
+  gap: 6px;
+}
+
+.sm-day-cb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  width: 36px;
+  padding: 5px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #f9fafb;
+  transition: background 0.12s, border-color 0.12s;
+  user-select: none;
+}
+
+.sm-day-cb:has(input:checked) {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.sm-day-cb input[type="checkbox"] {
+  display: none;
+}
+
+.sm-day-quick-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.sm-day-quick {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #f3f4f6;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.sm-day-quick:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.sm-custom-time {
+  margin-top: 2px;
+}
+
+.sm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sm-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+.sm-delete-btn {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border-color: #fca5a5 !important;
+}
+
+.sm-delete-btn:hover {
+  background: #fee2e2 !important;
+  border-color: #f87171 !important;
+}

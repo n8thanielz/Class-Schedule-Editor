@@ -16,16 +16,16 @@
         <div class="upload-instructions">
           <div class="upload-step">
             <span class="upload-step-num">1</span>
-            <span>Go to <a href="https://clss.utah.edu/wen/" target="_blank" rel="noopener">clss.utah.edu/wen</a>, open your department's schedule, and export as <strong>PDF</strong> or <strong>CSV</strong></span>
+            <span>Go to <a href="https://clss.utah.edu/wen/" target="_blank" rel="noopener">clss.utah.edu/wen</a>, open your department's schedule, and export as <strong>CSV</strong></span>
           </div>
           <div class="upload-step">
             <span class="upload-step-num">2</span>
-            <span>Upload the file below — you can select multiple departments at once</span>
+            <span>Upload the CSV below — you can select multiple departments at once</span>
           </div>
         </div>
         <label class="upload-btn" for="pdf-input">
           Choose File
-          <input type="file" id="pdf-input" accept=".pdf,.csv" multiple />
+          <input type="file" id="pdf-input" accept=".csv" multiple />
         </label>
         <div id="upload-error" class="upload-error hidden"></div>
         <div id="upload-loading" class="upload-loading hidden">
@@ -42,9 +42,13 @@
           <button id="export-btn" class="toolbar-btn">Print</button>
           <button id="export-pdf-btn" class="toolbar-btn">Export PDF</button>
           <button id="calendar-btn" class="toolbar-btn">Calendar</button>
+          <button id="export-csv-btn" class="toolbar-btn">Export CSV</button>
+          <button id="export-xlsx-btn" class="toolbar-btn">Export Excel</button>
+          <button id="edit-mode-btn" class="toolbar-btn">Edit Mode</button>
+          <button id="add-section-btn" class="toolbar-btn hidden">+ Add Section</button>
           <button id="toggle-online-btn" class="toolbar-btn">Hide Online</button>
           <button id="add-file-btn" class="toolbar-btn hidden">+ Add File</button>
-          <input type="file" id="add-file-input" accept=".pdf,.csv" style="display:none" />
+          <input type="file" id="add-file-input" accept=".csv" style="display:none" />
           <button id="new-upload-btn" class="toolbar-btn">↑ Upload New</button>
         </div>
       </div>
@@ -56,6 +60,154 @@
         </div>
       </div>
     </div>
+  <!-- Section editor modal -->
+  <div id="section-modal" class="modal-overlay hidden">
+    <div class="modal-card sm-modal-card">
+      <h2 class="modal-title" id="sm-title">Edit Section</h2>
+      <div class="sm-form">
+
+        <!-- Course -->
+        <div class="sm-form-group">
+          <label class="sm-label">Course</label>
+          <select id="sm-course" class="sm-select"></select>
+        </div>
+
+        <!-- New course fields (shown when "+ New Course…" selected) -->
+        <div id="sm-new-course-fields" class="sm-new-course-fields hidden">
+          <div class="sm-form-row">
+            <div class="sm-form-group">
+              <label class="sm-label">Course Number</label>
+              <input id="sm-new-course-num" type="text" class="sm-input" placeholder="e.g. ACCTG 2600" />
+            </div>
+            <div class="sm-form-group">
+              <label class="sm-label">Course Name</label>
+              <input id="sm-new-course-name" type="text" class="sm-input" placeholder="Course title" />
+            </div>
+          </div>
+          <div class="sm-form-group">
+            <label class="sm-label">Department</label>
+            <select id="sm-dept" class="sm-select"></select>
+          </div>
+        </div>
+
+        <!-- Section # and Type -->
+        <div class="sm-form-row">
+          <div class="sm-form-group">
+            <label class="sm-label">Section #</label>
+            <input id="sm-section-num" type="text" class="sm-input" placeholder="001" />
+          </div>
+          <div class="sm-form-group">
+            <label class="sm-label">Type</label>
+            <select id="sm-section-type" class="sm-select">
+              <option value="LEC">Lecture</option>
+              <option value="LAB">Laboratory</option>
+              <option value="DIS">Discussion</option>
+              <option value="SEM">Seminar</option>
+              <option value="REC">Recitation</option>
+              <option value="ACT">Activity</option>
+              <option value="IND">Independent Study</option>
+              <option value="THE">Thesis Research</option>
+              <option value="HON">Honors Thesis</option>
+              <option value="TPC">Special Topics</option>
+              <option value="CNT">Continuing Reg.</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Instructor -->
+        <div class="sm-form-group">
+          <label class="sm-label">Instructor</label>
+          <input id="sm-instructor" type="text" class="sm-input" list="sm-instructor-list" placeholder="Last, First" />
+          <datalist id="sm-instructor-list"></datalist>
+        </div>
+
+        <!-- Room and Delivery -->
+        <div class="sm-form-row">
+          <div class="sm-form-group">
+            <label class="sm-label">Room</label>
+            <input id="sm-room" type="text" class="sm-input" placeholder="e.g. BEH S110" />
+          </div>
+          <div class="sm-form-group">
+            <label class="sm-label">Delivery</label>
+            <select id="sm-inst-method" class="sm-select">
+              <option value="In Person">In Person</option>
+              <option value="Online">Online</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Remote Real-Time">Remote Real-Time</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Session -->
+        <div class="sm-form-group">
+          <label class="sm-label">Session</label>
+          <select id="sm-session" class="sm-select">
+            <option value="Regular Academic Session">Regular Academic Session</option>
+            <option value="1st Half">1st Half</option>
+            <option value="2nd Half">2nd Half</option>
+            <option value="Miscellaneous">Miscellaneous</option>
+          </select>
+        </div>
+        <div id="sm-session-dates" class="sm-custom-time hidden">
+          <div class="sm-form-row">
+            <div class="sm-form-group">
+              <label class="sm-label">Start Date</label>
+              <input id="sm-session-start" type="date" class="sm-input" />
+            </div>
+            <div class="sm-form-group">
+              <label class="sm-label">End Date</label>
+              <input id="sm-session-end" type="date" class="sm-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Days -->
+        <div class="sm-form-group">
+          <label class="sm-label">Days</label>
+          <div class="sm-day-picker">
+            <label class="sm-day-cb"><input type="checkbox" name="sm-day" value="M" /><span>M</span></label>
+            <label class="sm-day-cb"><input type="checkbox" name="sm-day" value="T" /><span>T</span></label>
+            <label class="sm-day-cb"><input type="checkbox" name="sm-day" value="W" /><span>W</span></label>
+            <label class="sm-day-cb"><input type="checkbox" name="sm-day" value="Th" /><span>Th</span></label>
+            <label class="sm-day-cb"><input type="checkbox" name="sm-day" value="F" /><span>F</span></label>
+          </div>
+          <div class="sm-day-quick-row">
+            <button type="button" class="sm-day-quick" data-days="M,W">MW</button>
+            <button type="button" class="sm-day-quick" data-days="T,Th">TTh</button>
+            <button type="button" class="sm-day-quick" data-days="M,W,F">MWF</button>
+          </div>
+        </div>
+
+        <!-- Time preset + custom -->
+        <div class="sm-form-group">
+          <label class="sm-label">Time</label>
+          <select id="sm-time-preset" class="sm-select"></select>
+          <div id="sm-custom-time" class="sm-custom-time hidden">
+            <div class="sm-form-row" style="margin-top:6px">
+              <div class="sm-form-group">
+                <label class="sm-label">Start</label>
+                <input id="sm-start-time" type="text" class="sm-input" placeholder="8:05am" />
+              </div>
+              <div class="sm-form-group">
+                <label class="sm-label">End</label>
+                <input id="sm-end-time" type="text" class="sm-input" placeholder="9:25am" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.sm-form -->
+
+      <div class="modal-actions sm-actions">
+        <button id="sm-delete-btn" class="modal-btn sm-delete-btn hidden">Mark Cancelled</button>
+        <div class="sm-actions-right">
+          <button id="sm-cancel-btn" class="modal-btn">Cancel</button>
+          <button id="sm-save-btn" class="modal-btn modal-btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- iCal export confirmation modal -->
   <div id="ical-modal" class="modal-overlay hidden">
     <div class="modal-card">
@@ -78,6 +230,9 @@
   <!-- html2pdf (canvas → PDF, no print dialog) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+  <!-- xlsx-js-style (SheetJS fork with cell styling support) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
   <!-- App modules (order matters) -->
   <script src="js/timeUtils.js"></script>
   <script src="js/colors.js"></script>
@@ -91,6 +246,10 @@
   <script src="js/exportPdf.js"></script>
   <script src="js/exportImage.js"></script>
   <script src="js/icalExport.js"></script>
+  <script src="js/csvExport.js"></script>
+  <script src="js/xlsxExport.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/editorModal.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

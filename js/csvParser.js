@@ -168,7 +168,8 @@ ScheduleApp.parseCSV = function(file) {
               dateRange:     csvDateRange(meetingsStr),
               iCalStart:     iCalDates ? iCalDates.start : null,
               iCalEnd:       iCalDates ? iCalDates.end   : null,
-              notes:         ''
+              notes:         '',
+              _rowIndex: i, _fileIndex: 0, _modified: false, _deleted: false, _isNew: false
             });
             continue;
           }
@@ -218,7 +219,8 @@ ScheduleApp.parseCSV = function(file) {
               sectionNumber: secNum, type: type, instructor: instructor,
               days: [], startTime: '', endTime: '',
               room: parseRoom(roomRaw), isOnline: false, doesNotMeet: true,
-              dateRange: '', iCalStart: null, iCalEnd: null, notes: ''
+              dateRange: '', iCalStart: null, iCalEnd: null, notes: '',
+              _rowIndex: i, _fileIndex: 0, _modified: false, _deleted: false, _isNew: false
             });
             continue;
           }
@@ -246,7 +248,9 @@ ScheduleApp.parseCSV = function(file) {
               dateRange:     sess.dateRange,
               iCalStart:     iCalDates ? iCalDates.start : null,
               iCalEnd:       iCalDates ? iCalDates.end   : null,
-              notes:         notes.join(', ')
+              notes:         notes.join(', '),
+              _rowIndex: i, _fileIndex: 0, _modified: false, _deleted: false, _isNew: false,
+              _multiSession: parsed.length > 1
             });
           }
         }
@@ -255,7 +259,9 @@ ScheduleApp.parseCSV = function(file) {
           semester:  semPrefix + (dept || 'Course') + ' All Class Schedule',
           sections:  sections,
           dept:      dept || null,
-          semPrefix: semPrefix.trim()
+          semPrefix: semPrefix.trim(),
+          _rawRows:  rows,
+          _colMap:   colMap || FALLBACK
         });
       } catch (err) {
         reject(err);
