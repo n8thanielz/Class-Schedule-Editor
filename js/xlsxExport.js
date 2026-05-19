@@ -180,13 +180,12 @@ function _buildSheet(sch, fileIndex, allSchedules) {
   function pushNewSection(sec) {
     var row    = new Array(numCols).fill('');
     var refRow = refRows[sec.courseNumber];
-    // Copy cols B–F (raw indices 1–5) from an existing row of the same course
     if (refRow) {
-      var rawColNames = ['Term', 'Term Code', 'Department Code', 'Subject Code', 'Catalog Number'];
-      for (var bi = 1; bi <= 5 && bi < refRow.length; bi++) {
-        var colName = rawColNames[bi - 1];
-        if (refRow[bi]) _setXLCol(row, colName, refRow[bi]);
-      }
+      var bfCols = ['Term', 'Term Code', 'Department Code', 'Subject Code', 'Catalog Number'];
+      bfCols.forEach(function(colName) {
+        var rawIdx = colMap[colName];
+        if (rawIdx !== undefined && refRow[rawIdx]) _setXLCol(row, colName, refRow[rawIdx]);
+      });
     }
     _applySecFields(row, sec);
     _setXLCol(row, 'Status',  'Active');
@@ -194,8 +193,17 @@ function _buildSheet(sch, fileIndex, allSchedules) {
     pushRow(row, _S_NEW, _S_NEW_BOLD);
   }
 
+  function _sortBySecNumXL(a, b) {
+    var an = parseInt(a.sectionNumber, 10);
+    var bn = parseInt(b.sectionNumber, 10);
+    if (!isNaN(an) && !isNaN(bn)) return an - bn;
+    return a.sectionNumber < b.sectionNumber ? -1 : 1;
+  }
+
   // Header row
   pushRow(_EXPORT_COLS, _S_HEADER, _S_HEADER);
+
+  var pendingNew = null;
 
   for (var ri = 0; ri < rawRows.length; ri++) {
     var raw = rawRows[ri];
@@ -211,16 +219,20 @@ function _buildSheet(sch, fileIndex, allSchedules) {
     }
     if (isColHdr) continue;
 
-    // Course header row
+    // Course header row — flush pending new sections from previous course first
     if (c0 && !c1) {
+      if (pendingNew) {
+        pendingNew.forEach(pushNewSection);
+        pendingNew = null;
+      }
       pushCourseHeader(c0);
       var cm = c0.match(/^([A-Z]{2,8}\s*\d+)\s*[-–]/i);
       if (cm) {
         var courseNum = cm[1].replace(/\s+/, ' ').trim().toUpperCase();
         seenCourses[courseNum] = true;
-        if (newByCourse[courseNum]) {
-          newByCourse[courseNum].forEach(pushNewSection);
-        }
+        pendingNew = newByCourse[courseNum]
+          ? newByCourse[courseNum].slice().sort(_sortBySecNumXL)
+          : null;
       }
       continue;
     }
@@ -251,6 +263,11 @@ function _buildSheet(sch, fileIndex, allSchedules) {
                   : sec && sec._modified ? _S_MODIFIED_BOLD
                   : null;
     pushRow(outRow, style, boldStyle);
+  }
+
+  // Flush new sections for the last course
+  if (pendingNew) {
+    pendingNew.forEach(pushNewSection);
   }
 
   // Append new sections whose course wasn't in the original rows

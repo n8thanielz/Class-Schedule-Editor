@@ -88,17 +88,27 @@ function _applySection(row, colMap, section) {
   _setCol(row, colMap, 'Inst. Method', method);
 }
 
+var _BF_COLS = ['Term', 'Term Code', 'Department Code', 'Subject Code', 'Catalog Number'];
+
 function _buildNewRow(section, colMap, rowWidth, refRow) {
   var row = new Array(rowWidth).fill('');
-  // Copy cols B–F (indices 1–5) from an existing row of the same course
+  // Copy cols B–F from an existing row of the same course using colMap for correct indices
   if (refRow) {
-    for (var i = 1; i <= 5 && i < refRow.length; i++) {
-      row[i] = refRow[i] || '';
-    }
+    _BF_COLS.forEach(function(name) {
+      var idx = colMap[name];
+      if (idx !== undefined && refRow[idx]) row[idx] = refRow[idx];
+    });
   }
   _applySection(row, colMap, section);
   _setCol(row, colMap, 'Status', 'Active');
   return row;
+}
+
+function _sortBySecNum(a, b) {
+  var an = parseInt(a.sectionNumber, 10);
+  var bn = parseInt(b.sectionNumber, 10);
+  if (!isNaN(an) && !isNaN(bn)) return an - bn;
+  return a.sectionNumber < b.sectionNumber ? -1 : 1;
 }
 
 function _downloadCSV(filename, content) {
@@ -155,38 +165,48 @@ function _exportOne(sch, fileIndex, allSchedules) {
   // Track which new-course numbers already appeared in original rows
   var seenCourses = {};
   var outputLines = [];
+  var pendingNew  = null; // new sections buffered for the current course
 
   for (var ri = 0; ri < rawRows.length; ri++) {
     var row = rawRows[ri].slice();
     var c0  = (row[0] || '').trim();
     var c1  = (row[1] || '').trim();
 
+    // Course header row — flush pending new sections from previous course first
+    if (c0 && !c1) {
+      var cm = c0.match(/^([A-Z]{2,8}\s*\d+)\s*[-–]/i);
+      if (cm) {
+        if (pendingNew) {
+          pendingNew.forEach(function(ns) {
+            outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth, refRows[ns.courseNumber])));
+          });
+          pendingNew = null;
+        }
+        var courseNum = cm[1].replace(/\s+/, ' ').trim().toUpperCase();
+        seenCourses[courseNum] = true;
+        pendingNew = newByCourse[courseNum]
+          ? newByCourse[courseNum].slice().sort(_sortBySecNum)
+          : null;
+      }
+    }
+
+    // Output the row (with any modifications applied)
     if (byRow[ri]) {
-      // Section row — apply modifications
-      var sec = byRow[ri][0]; // primary section for this row
+      var sec = byRow[ri][0];
       if (sec._deleted) {
         _setCol(row, colMap, 'Status', 'Cancelled');
       } else if (sec._modified) {
         _applySection(row, colMap, sec);
       }
-      outputLines.push(_rowToLine(row));
-    } else {
-      outputLines.push(_rowToLine(row));
     }
+    outputLines.push(_rowToLine(row));
+  }
 
-    // After a course header row, insert new sections for that course
-    if (c0 && !c1) {
-      var cm = c0.match(/^([A-Z]{2,8}\s*\d+)\s*[-–]/i);
-      if (cm) {
-        var courseNum = cm[1].replace(/\s+/, ' ').trim().toUpperCase();
-        seenCourses[courseNum] = true;
-        if (newByCourse[courseNum]) {
-          newByCourse[courseNum].forEach(function(ns) {
-            outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth, refRows[ns.courseNumber])));
-          });
-        }
-      }
-    }
+  // Flush new sections for the last course
+  if (pendingNew) {
+    pendingNew.forEach(function(ns) {
+      outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth, refRows[ns.courseNumber])));
+    });
   }
 
   // Append entirely new courses not in original rows
