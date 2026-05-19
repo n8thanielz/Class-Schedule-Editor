@@ -61,8 +61,6 @@ ScheduleApp.markDirty = function() {
   ScheduleApp._isDirty = true;
 };
 
-// Shows a confirm dialog if there are unsaved changes, then calls cb.
-// Calls cb immediately if not dirty.
 ScheduleApp.promptIfDirty = function(cb) {
   if (!ScheduleApp._isDirty) { cb(); return; }
   if (confirm('You have unsaved edits that will be lost. Continue without exporting?')) {
@@ -84,11 +82,54 @@ ScheduleApp.findSection = function(sectionId) {
   return null;
 };
 
+// ── Day pattern helpers ───────────────────────────────────────────────────────
+
+var _MW_DAYS  = ['M', 'W', 'F'];
+var _TTH_DAYS = ['T', 'Th'];
+
+function _isMWFamily(days) {
+  return days.some(function(d) { return _MW_DAYS.indexOf(d) !== -1; });
+}
+
+function _isTThFamily(days) {
+  return days.some(function(d) { return _TTH_DAYS.indexOf(d) !== -1; });
+}
+
+// Given the hovered day, return the target day array.
+// If hovering over the same family as original, return original unchanged.
+// If crossing to a new family, return the canonical 2-day set for that family.
+function _targetDays(origDays, hoveredDay) {
+  if (!hoveredDay) return origDays;
+  var hoverMW  = _MW_DAYS.indexOf(hoveredDay)  !== -1;
+  var hoverTTh = _TTH_DAYS.indexOf(hoveredDay) !== -1;
+  if (hoverMW  && _isMWFamily(origDays))  return origDays;
+  if (hoverTTh && _isTThFamily(origDays)) return origDays;
+  if (hoverMW)  return ['M', 'W'];
+  if (hoverTTh) return ['T', 'Th'];
+  return origDays;
+}
+
+function _isCrossDay(origDays, tgtDays) {
+  return (_isMWFamily(origDays) && _isTThFamily(tgtDays)) ||
+         (_isTThFamily(origDays) && _isMWFamily(tgtDays));
+}
+
+// Find which day column the cursor x-coordinate falls inside.
+function _dayAtX(x) {
+  var cols = ScheduleApp._dayColumns;
+  if (!cols) return null;
+  for (var day in cols) {
+    var rect = cols[day].getBoundingClientRect();
+    if (x >= rect.left && x <= rect.right) return day;
+  }
+  return null;
+}
+
 // ── Snap logic ────────────────────────────────────────────────────────────────
 
 function _snapBlock(startMin, days) {
-  var hasMW  = days.indexOf('M') !== -1 || days.indexOf('W') !== -1 || days.indexOf('F') !== -1;
-  var hasTTh = days.indexOf('T') !== -1 || days.indexOf('Th') !== -1;
+  var hasMW  = _isMWFamily(days);
+  var hasTTh = _isTThFamily(days);
   var blocks = hasTTh && !hasMW ? SNAP_BLOCKS.TTh : SNAP_BLOCKS.MW;
 
   var best = null, bestDist = Infinity;
@@ -97,6 +138,33 @@ function _snapBlock(startMin, days) {
     if (dist < bestDist) { bestDist = dist; best = blocks[i]; }
   }
   return bestDist <= 45 ? best : null;
+}
+
+// ── Snap indicator (ghost overlay in target columns) ─────────────────────────
+
+function _showSnapIndicator(snap, days) {
+  _clearSnapIndicator();
+  if (!snap) return;
+  var cols = ScheduleApp._dayColumns;
+  if (!cols) return;
+  var SA     = ScheduleApp;
+  var top    = (SA.timeToMinutes(snap.start) - SA.GRID_START) * SA.PX_PER_MIN;
+  var height = (SA.timeToMinutes(snap.end)   - SA.timeToMinutes(snap.start)) * SA.PX_PER_MIN;
+  days.forEach(function(day) {
+    var col = cols[day];
+    if (!col) return;
+    var ind = document.createElement('div');
+    ind.className = 'snap-indicator';
+    ind.style.top    = top + 'px';
+    ind.style.height = height + 'px';
+    col.appendChild(ind);
+  });
+}
+
+function _clearSnapIndicator() {
+  document.querySelectorAll('.snap-indicator').forEach(function(el) {
+    el.parentNode && el.parentNode.removeChild(el);
+  });
 }
 
 // ── Drag state ────────────────────────────────────────────────────────────────
@@ -136,12 +204,14 @@ function _onBlockMouseDown(e) {
   );
 
   _drag = {
-    section:   result.section,
-    startY:    e.clientY,
-    didMove:   false,
-    blocks:    allBlocks,
-    origTops:  allBlocks.map(function(b) { return parseFloat(b.style.top) || 0; }),
-    pendingSnap: null
+    section:     result.section,
+    startY:      e.clientY,
+    startX:      e.clientX,
+    didMove:     false,
+    blocks:      allBlocks,
+    origTops:    allBlocks.map(function(b) { return parseFloat(b.style.top) || 0; }),
+    pendingSnap: null,
+    pendingDays: null
   };
 
   allBlocks.forEach(function(b) { b.classList.add('dragging'); });
@@ -150,8 +220,8 @@ function _onBlockMouseDown(e) {
 document.addEventListener('mousemove', function(e) {
   if (!_drag) return;
 
-  var deltaY   = e.clientY - _drag.startY;
-  if (Math.abs(deltaY) > 3) _drag.didMove = true;
+  var deltaY = e.clientY - _drag.startY;
+  if (Math.abs(deltaY) > 3 || Math.abs(e.clientX - _drag.startX) > 3) _drag.didMove = true;
   if (!_drag.didMove) return;
 
   var SA       = ScheduleApp;
@@ -159,15 +229,28 @@ document.addEventListener('mousemove', function(e) {
   var origMin  = SA.timeToMinutes(_drag.section.startTime);
   var proposed = origMin + deltaMin;
 
-  var snapped  = _snapBlock(proposed, _drag.section.days);
-  var snapMin  = snapped ? SA.timeToMinutes(snapped.start) : proposed;
-  var deltaPx  = (snapMin - origMin) * SA.PX_PER_MIN;
-
-  _drag.blocks.forEach(function(b, i) {
-    b.style.top = (_drag.origTops[i] + deltaPx) + 'px';
-  });
+  var hoveredDay = _dayAtX(e.clientX);
+  var tgtDays    = _targetDays(_drag.section.days, hoveredDay);
+  var crossDay   = _isCrossDay(_drag.section.days, tgtDays);
+  var snapped    = _snapBlock(proposed, tgtDays);
 
   _drag.pendingSnap = snapped;
+  _drag.pendingDays = tgtDays;
+
+  if (crossDay) {
+    // Dim original blocks and show ghost in target columns
+    _drag.blocks.forEach(function(b) { b.style.opacity = '0.2'; });
+    _showSnapIndicator(snapped, tgtDays);
+  } else {
+    // Restore blocks and move them vertically
+    _drag.blocks.forEach(function(b) { b.style.opacity = ''; });
+    _clearSnapIndicator();
+    var snapMin = snapped ? SA.timeToMinutes(snapped.start) : proposed;
+    var deltaPx = (snapMin - origMin) * SA.PX_PER_MIN;
+    _drag.blocks.forEach(function(b, i) {
+      b.style.top = (_drag.origTops[i] + deltaPx) + 'px';
+    });
+  }
 });
 
 document.addEventListener('mouseup', function(e) {
@@ -175,11 +258,16 @@ document.addEventListener('mouseup', function(e) {
   var state = _drag;
   _drag = null;
 
-  state.blocks.forEach(function(b) { b.classList.remove('dragging'); });
+  state.blocks.forEach(function(b) {
+    b.classList.remove('dragging');
+    b.style.opacity = '';
+  });
+  _clearSnapIndicator();
 
   if (state.didMove && state.pendingSnap) {
     state.section.startTime = state.pendingSnap.start;
     state.section.endTime   = state.pendingSnap.end;
+    if (state.pendingDays) state.section.days = state.pendingDays;
     state.section._modified = true;
     ScheduleApp.markDirty();
     ScheduleApp.triggerRenderAll();

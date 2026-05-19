@@ -74,6 +74,7 @@ function _populateModal(section, fileIndex) {
     document.getElementById('sm-instructor').value   = section.instructor;
     document.getElementById('sm-room').value         = section.room || '';
     document.getElementById('sm-inst-method').value  = _inferInstMethod(section);
+    document.getElementById('sm-room-cap').value     = section.roomCapRequest || '';
     document.getElementById('sm-session').value      = section.session || 'Regular Academic Session';
     _toggleSessionDates(section.session === 'Miscellaneous');
     if (section.session === 'Miscellaneous') {
@@ -117,6 +118,7 @@ function _populateModal(section, fileIndex) {
     document.getElementById('sm-instructor').value   = '';
     document.getElementById('sm-room').value         = '';
     document.getElementById('sm-inst-method').value  = 'In Person';
+    document.getElementById('sm-room-cap').value     = '';
     document.getElementById('sm-session').value      = 'Regular Academic Session';
     _toggleSessionDates(false);
     document.querySelectorAll('#section-modal input[name="sm-day"]').forEach(function(cb) {
@@ -307,9 +309,25 @@ function _handleSave() {
   var instName = document.getElementById('sm-instructor').value.trim() || 'Staff';
   var room     = document.getElementById('sm-room').value.trim();
   var method   = document.getElementById('sm-inst-method').value;
+  var roomCap  = document.getElementById('sm-room-cap').value.trim();
   var days     = _getSelectedDays();
 
   if (!secNum)         { alert('Please enter a section number.'); return; }
+
+  // Pad purely numeric section numbers to 3 digits
+  if (/^\d+$/.test(secNum)) {
+    secNum = ('00' + parseInt(secNum, 10)).slice(-3);
+    document.getElementById('sm-section-num').value = secNum;
+  }
+
+  // Check for duplicate section number on the same course
+  var proposedId = courseNumber + '-' + secNum;
+  var existing   = ScheduleApp.findSection(proposedId);
+  if (existing && !existing.section._deleted && (!isEdit || existing.section.id !== editId)) {
+    alert('Section ' + secNum + ' already exists for ' + courseNumber + '. Please use a different section number.');
+    return;
+  }
+
   if (!days.length)    { alert('Please select at least one day.'); return; }
 
   // Resolve time
@@ -351,12 +369,13 @@ function _handleSave() {
     s.startTime     = startTime;
     s.endTime       = endTime;
     s.room          = room;
-    s.isOnline      = method === 'Online';
-    s.doesNotMeet   = method === 'Online';
-    s.notes         = notes;
-    s.session       = session;
+    s.isOnline        = method === 'Online';
+    s.doesNotMeet     = method === 'Online';
+    s.notes           = notes;
+    s.session         = session;
+    s.roomCapRequest  = roomCap;
     if (session === 'Miscellaneous') { s.iCalStart = sessionStart; s.iCalEnd = sessionEnd; }
-    s._modified     = true;
+    s._modified       = true;
     // Update the section id to reflect any secNum change
     s.id = courseNumber + '-' + secNum;
   } else {
@@ -372,13 +391,14 @@ function _handleSave() {
       startTime:     startTime,
       endTime:       endTime,
       room:          room,
-      isOnline:      method === 'Online',
-      doesNotMeet:   method === 'Online',
-      dateRange:     '',
-      iCalStart:     sessionStart,
-      iCalEnd:       sessionEnd,
-      notes:         notes,
-      session:       session,
+      isOnline:        method === 'Online',
+      doesNotMeet:     method === 'Online',
+      dateRange:       '',
+      iCalStart:       sessionStart,
+      iCalEnd:         sessionEnd,
+      notes:           notes,
+      session:         session,
+      roomCapRequest:  roomCap,
       _rowIndex:     -1,
       _fileIndex:    fileIndex,
       _modified:     false,

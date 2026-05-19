@@ -1030,6 +1030,17 @@ body.edit-mode .course-block:hover {
   outline-color: rgba(37, 99, 235, 0.8) !important;
 }
 
+.snap-indicator {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  border-radius: 5px;
+  background: rgba(37, 99, 235, 0.15);
+  border: 2px dashed rgba(37, 99, 235, 0.55);
+  pointer-events: none;
+  z-index: 20;
+}
+
 /* ── Section Editor Modal ── */
 .sm-modal-card {
   max-width: 520px;
@@ -1075,6 +1086,8 @@ body.edit-mode .course-block:hover {
   outline: none;
   width: 100%;
 }
+
+.sm-input-narrow { max-width: 120px; }
 
 .sm-input:focus,
 .sm-select:focus {

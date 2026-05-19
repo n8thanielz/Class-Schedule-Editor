@@ -77,6 +77,10 @@ function _applySection(row, colMap, section) {
     _setCol(row, colMap, 'Session', sessionVal);
   }
 
+  if (section.roomCapRequest) {
+    _setCol(row, colMap, 'Rm Cap Request', section.roomCapRequest);
+  }
+
   var method = 'In Person';
   if (section.isOnline)                         method = 'Online';
   else if (/hybrid/i.test(section.notes))       method = 'Hybrid';
@@ -84,8 +88,14 @@ function _applySection(row, colMap, section) {
   _setCol(row, colMap, 'Inst. Method', method);
 }
 
-function _buildNewRow(section, colMap, rowWidth) {
+function _buildNewRow(section, colMap, rowWidth, refRow) {
   var row = new Array(rowWidth).fill('');
+  // Copy cols B–F (indices 1–5) from an existing row of the same course
+  if (refRow) {
+    for (var i = 1; i <= 5 && i < refRow.length; i++) {
+      row[i] = refRow[i] || '';
+    }
+  }
   _applySection(row, colMap, section);
   _setCol(row, colMap, 'Status', 'Active');
   return row;
@@ -120,12 +130,15 @@ function _exportOne(sch, fileIndex, allSchedules) {
   var rowWidth = rawRows[0] ? rawRows[0].length : 25;
 
   // Build lookup: rowIndex → sections from this file
-  var byRow = {};
+  // Also build refRows: courseNumber → first raw section row (to copy cols B–F onto new sections)
+  var byRow   = {};
+  var refRows = {};
   for (var fi2 = 0; fi2 < allSchedules.length; fi2++) {
     allSchedules[fi2].sections.forEach(function(s) {
       if (s._fileIndex !== fileIndex || s._rowIndex < 0) return;
       if (!byRow[s._rowIndex]) byRow[s._rowIndex] = [];
       byRow[s._rowIndex].push(s);
+      if (!refRows[s.courseNumber]) refRows[s.courseNumber] = rawRows[s._rowIndex];
     });
   }
 
@@ -169,7 +182,7 @@ function _exportOne(sch, fileIndex, allSchedules) {
         seenCourses[courseNum] = true;
         if (newByCourse[courseNum]) {
           newByCourse[courseNum].forEach(function(ns) {
-            outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth)));
+            outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth, refRows[ns.courseNumber])));
           });
         }
       }
@@ -184,7 +197,7 @@ function _exportOne(sch, fileIndex, allSchedules) {
     headerRow[0] = secs[0].courseNumber + ' - ' + (secs[0].courseName || secs[0].courseNumber);
     outputLines.push(_rowToLine(headerRow));
     secs.forEach(function(ns) {
-      outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth)));
+      outputLines.push(_rowToLine(_buildNewRow(ns, colMap, rowWidth, refRows[ns.courseNumber])));
     });
   }
 

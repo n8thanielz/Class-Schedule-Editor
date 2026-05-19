@@ -125,7 +125,11 @@
         <div class="sm-form-row">
           <div class="sm-form-group">
             <label class="sm-label">Room</label>
-            <input id="sm-room" type="text" class="sm-input" placeholder="e.g. BEH S110" />
+            <input id="sm-room" type="text" class="sm-input" list="sm-room-list" placeholder="Room number or request type" />
+            <datalist id="sm-room-list">
+              <option value="Request General Assignment"></option>
+              <option value="Request GARFF Room"></option>
+            </datalist>
           </div>
           <div class="sm-form-group">
             <label class="sm-label">Delivery</label>
@@ -136,6 +140,15 @@
               <option value="Remote Real-Time">Remote Real-Time</option>
             </select>
           </div>
+        </div>
+
+        <!-- Room Cap Request -->
+        <div class="sm-form-row">
+          <div class="sm-form-group">
+            <label class="sm-label">Room Cap Request</label>
+            <input id="sm-room-cap" type="number" class="sm-input sm-input-narrow" placeholder="e.g. 30" min="1" />
+          </div>
+          <div class="sm-form-group"></div>
         </div>
 
         <!-- Session -->
