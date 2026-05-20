@@ -1041,6 +1041,31 @@ body.edit-mode .course-block:hover {
   z-index: 20;
 }
 
+body.edit-mode .toolbar h1 {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  transition: background 0.12s;
+}
+
+body.edit-mode .toolbar h1:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+#schedule-title-input {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  color: inherit;
+  background: #fff;
+  border: 2px solid #2563eb;
+  border-radius: 4px;
+  padding: 1px 6px;
+  outline: none;
+  min-width: 240px;
+}
+
 /* ── Section Editor Modal ── */
 .sm-modal-card {
   max-width: 520px;

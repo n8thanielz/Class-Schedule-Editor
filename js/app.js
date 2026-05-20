@@ -22,12 +22,14 @@ var icalModalConfirm  = document.getElementById('ical-modal-confirm');
 var icalModalCancel   = document.getElementById('ical-modal-cancel');
 
 var loadedSchedules = [];
+var _customTitle    = null;
 
 // Bridge functions for editor modules
 ScheduleApp.getLoadedSchedules = function() { return loadedSchedules; };
 ScheduleApp.triggerRenderAll   = function() { renderAll(); };
 
 function buildTitle() {
+  if (_customTitle) return _customTitle;
   if (!loadedSchedules.length) return 'Schedule';
   if (loadedSchedules.length === 1) return loadedSchedules[0].semester;
   var prefix = loadedSchedules[0].semPrefix ? loadedSchedules[0].semPrefix + ' ' : '';
@@ -161,6 +163,7 @@ newUploadBtn.addEventListener('click', function() {
   ScheduleApp.promptIfDirty(function() {
     ScheduleApp.exitEditMode();
     loadedSchedules = [];
+    _customTitle = null;
     scheduleView.classList.add('hidden');
     uploadView.classList.remove('hidden');
     scheduleGrid.innerHTML = '';
@@ -257,6 +260,43 @@ window.addEventListener('beforeunload', function(e) {
     e.preventDefault();
     e.returnValue = '';
   }
+});
+
+scheduleTitle.addEventListener('click', function() {
+  if (!document.body.classList.contains('edit-mode')) return;
+  if (scheduleTitle.querySelector('#schedule-title-input')) return;
+
+  var current = scheduleTitle.textContent;
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.id   = 'schedule-title-input';
+  input.value = current;
+  scheduleTitle.textContent = '';
+  scheduleTitle.appendChild(input);
+  input.focus();
+  input.select();
+
+  var committed = false;
+  function commit() {
+    if (committed) return;
+    committed = true;
+    var val = input.value.trim();
+    if (val && val !== current) {
+      _customTitle = val;
+      loadedSchedules.forEach(function(sch) { sch.semPrefix = val; });
+      ScheduleApp.markDirty();
+    }
+    renderAll();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Escape') {
+      committed = true;
+      scheduleTitle.textContent = current;
+    }
+  });
 });
 
 // Init editor modal event listeners once
