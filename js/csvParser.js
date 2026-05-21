@@ -63,6 +63,19 @@ function parseRoom(raw) {
   return stripped;
 }
 
+function csvSessionType(raw) {
+  if (!raw) return 'Regular Academic Session';
+  if (/^1st Half/i.test(raw))      return '1st Half';
+  if (/^2nd Half/i.test(raw))      return '2nd Half';
+  if (/^Miscellaneous/i.test(raw)) return 'Miscellaneous';
+  return 'Regular Academic Session';
+}
+
+function _iCalToDateRange(d) {
+  return parseInt(d.start.slice(4, 6)) + '/' + parseInt(d.start.slice(6, 8)) +
+    '–' + parseInt(d.end.slice(4, 6)) + '/' + parseInt(d.end.slice(6, 8));
+}
+
 // ── Section type map ──────────────────────────────────────────────────────────
 
 var CSV_SEC_TYPE = {
@@ -212,6 +225,7 @@ ScheduleApp.parseCSV = function(file) {
           var roomRaw     = col(row, 'Room');
           var instMethod  = col(row, 'Inst. Method');
           var iCalDates   = csvICalDates(col(row, 'Session')) || csvICalDates(meetingsStr);
+          var sessionType = csvSessionType(col(row, 'Session'));
 
           var instructor  = parseInstructor(instRaw);
           var doesNotMeet = /^Does Not Meet/i.test(meetPat);
@@ -230,7 +244,7 @@ ScheduleApp.parseCSV = function(file) {
               room:          isOnline ? 'ONLINE' : parseRoom(roomRaw),
               isOnline:      isOnline,
               doesNotMeet:   true,
-              dateRange:     csvDateRange(meetingsStr),
+              dateRange:     csvDateRange(meetingsStr) || (iCalDates && sessionType !== 'Regular Academic Session' ? _iCalToDateRange(iCalDates) : ''),
               iCalStart:     iCalDates ? iCalDates.start : null,
               iCalEnd:       iCalDates ? iCalDates.end   : null,
               notes:         '',
@@ -310,7 +324,7 @@ ScheduleApp.parseCSV = function(file) {
               room:          sess.room,
               isOnline:      /^ONLINE$/i.test(sess.room),
               doesNotMeet:   false,
-              dateRange:     sess.dateRange,
+              dateRange:     sess.dateRange || (iCalDates && sessionType !== 'Regular Academic Session' ? _iCalToDateRange(iCalDates) : ''),
               iCalStart:     iCalDates ? iCalDates.start : null,
               iCalEnd:       iCalDates ? iCalDates.end   : null,
               notes:         notes.join(', '),

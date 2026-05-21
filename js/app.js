@@ -74,7 +74,12 @@ function _markInstructorConflicts() {
       var aEnd   = ScheduleApp.timeToMinutes(a.endTime);
       var bStart = ScheduleApp.timeToMinutes(b.startTime);
       var bEnd   = ScheduleApp.timeToMinutes(b.endTime);
-      if (aStart < bEnd && aEnd > bStart) {
+      var dateRangesOverlap = true;
+      if (a.iCalStart && a.iCalEnd && b.iCalStart && b.iCalEnd) {
+        dateRangesOverlap = parseInt(a.iCalStart) <= parseInt(b.iCalEnd) &&
+                            parseInt(a.iCalEnd)   >= parseInt(b.iCalStart);
+      }
+      if (aStart < bEnd && aEnd > bStart && dateRangesOverlap) {
         a._instructorConflict = true;
         b._instructorConflict = true;
         _conflictPairs.push({ a: a, b: b });
