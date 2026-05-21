@@ -306,9 +306,14 @@ ScheduleApp.initEditorModal = function() {
     });
   });
 
-  // Delivery method → show/hide day/time fields for Online
+  // Delivery method → show/hide day/time fields; clear "ONLINE" room when switching away
   document.getElementById('sm-inst-method').addEventListener('change', function() {
-    _toggleOnlineFields(this.value === 'Online');
+    var isOnline = this.value === 'Online';
+    _toggleOnlineFields(isOnline);
+    if (!isOnline) {
+      var roomEl = document.getElementById('sm-room');
+      if (/^ONLINE$/i.test(roomEl.value.trim())) roomEl.value = '';
+    }
   });
 
   // Session → show/hide custom date inputs
