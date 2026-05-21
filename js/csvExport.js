@@ -123,13 +123,13 @@ function _downloadCSV(filename, content) {
 }
 
 // Export one CSV per loaded schedule (department).
-ScheduleApp.exportCSVByDept = function(loadedSchedules) {
+ScheduleApp.exportCSVByDept = function(loadedSchedules, customPrefix) {
   for (var fi = 0; fi < loadedSchedules.length; fi++) {
-    _exportOne(loadedSchedules[fi], fi, loadedSchedules);
+    _exportOne(loadedSchedules[fi], fi, loadedSchedules, customPrefix);
   }
 };
 
-function _exportOne(sch, fileIndex, allSchedules) {
+function _exportOne(sch, fileIndex, allSchedules, customPrefix) {
   if (!sch._rawRows || !sch._colMap) {
     alert('Cannot export "' + (sch.dept || 'this schedule') + '" — it was not loaded from a CSV.');
     return;
@@ -221,7 +221,7 @@ function _exportOne(sch, fileIndex, allSchedules) {
     });
   }
 
-  var semPart  = sch.semPrefix ? sch.semPrefix.replace(/\s+/g, '_') : 'schedule';
+  var semPart  = customPrefix || (sch.semPrefix ? sch.semPrefix.replace(/\s+/g, '_') : 'schedule');
   var deptPart = sch.dept || 'dept';
   _downloadCSV(semPart + '_' + deptPart + '_export.csv', outputLines.join('\r\n'));
 }

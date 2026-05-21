@@ -223,6 +223,24 @@
     </div>
   </div>
 
+  <!-- Export filename modal -->
+  <div id="export-name-modal" class="modal-overlay hidden">
+    <div class="modal-card export-name-card">
+      <h2 class="modal-title" id="export-name-title">Export File</h2>
+      <div class="export-name-row">
+        <input id="export-name-input" type="text" class="sm-input export-name-input" />
+        <span id="export-name-ext" class="export-name-ext"></span>
+      </div>
+      <div class="modal-actions">
+        <div></div>
+        <div class="export-name-btns">
+          <button id="export-name-cancel" class="modal-btn">Cancel</button>
+          <button id="export-name-confirm" class="modal-btn modal-btn-primary">Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- iCal export confirmation modal -->
   <div id="ical-modal" class="modal-overlay hidden">
     <div class="modal-card">

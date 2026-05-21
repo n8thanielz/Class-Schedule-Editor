@@ -1084,6 +1084,36 @@ body.edit-mode .toolbar h1:hover {
   min-width: 240px;
 }
 
+/* ── Export Filename Modal ── */
+.export-name-card {
+  max-width: 400px;
+  width: 90%;
+}
+
+.export-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.export-name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-name-ext {
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.export-name-btns {
+  display: flex;
+  gap: 8px;
+}
+
 /* ── Section Editor Modal ── */
 .sm-modal-card {
   max-width: 520px;

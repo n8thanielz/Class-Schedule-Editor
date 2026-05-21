@@ -294,7 +294,7 @@ function _buildSheet(sch, fileIndex, allSchedules) {
 
 // ── Public export ─────────────────────────────────────────────────────────────
 
-ScheduleApp.exportXLSX = function(loadedSchedules) {
+ScheduleApp.exportXLSX = function(loadedSchedules, customName) {
   if (!window.XLSX) {
     alert('Excel export library not loaded.');
     return;
@@ -316,7 +316,9 @@ ScheduleApp.exportXLSX = function(loadedSchedules) {
     return;
   }
 
-  var prefix = loadedSchedules[0] && loadedSchedules[0].semPrefix
-    ? loadedSchedules[0].semPrefix.replace(/\s+/g, '_') + '_' : '';
-  XLSX.writeFile(wb, prefix + 'schedule_changes.xlsx');
+  var filename = customName ? customName + '.xlsx'
+    : (loadedSchedules[0] && loadedSchedules[0].semPrefix
+        ? loadedSchedules[0].semPrefix.replace(/\s+/g, '_') + '_schedule_changes.xlsx'
+        : 'schedule_changes.xlsx');
+  XLSX.writeFile(wb, filename);
 };

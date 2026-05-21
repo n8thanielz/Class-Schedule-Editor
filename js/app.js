@@ -20,6 +20,12 @@ var icalModal         = document.getElementById('ical-modal');
 var icalModalBody     = document.getElementById('ical-modal-body');
 var icalModalConfirm  = document.getElementById('ical-modal-confirm');
 var icalModalCancel   = document.getElementById('ical-modal-cancel');
+var exportNameModal   = document.getElementById('export-name-modal');
+var exportNameInput   = document.getElementById('export-name-input');
+var exportNameExt     = document.getElementById('export-name-ext');
+var exportNameTitle   = document.getElementById('export-name-title');
+var exportNameConfirm = document.getElementById('export-name-confirm');
+var exportNameCancel  = document.getElementById('export-name-cancel');
 
 var loadedSchedules = [];
 var _customTitle    = null;
@@ -243,12 +249,59 @@ editModeBtn.addEventListener('click', function() {
   ScheduleApp.toggleEditMode();
 });
 
+var _pendingExport = null;
+
+function _defaultExportPrefix() {
+  return loadedSchedules[0] && loadedSchedules[0].semPrefix
+    ? loadedSchedules[0].semPrefix.replace(/\s+/g, '_') : 'schedule';
+}
+
+function _showExportNamePrompt(title, defaultName, ext, callback) {
+  exportNameTitle.textContent = title;
+  exportNameInput.value = defaultName;
+  exportNameExt.textContent = ext;
+  _pendingExport = callback;
+  exportNameModal.classList.remove('hidden');
+  exportNameInput.focus();
+  exportNameInput.select();
+}
+
+exportNameConfirm.addEventListener('click', function() {
+  var name = exportNameInput.value.trim();
+  if (!name || !_pendingExport) return;
+  exportNameModal.classList.add('hidden');
+  var cb = _pendingExport;
+  _pendingExport = null;
+  cb(name);
+});
+
+exportNameCancel.addEventListener('click', function() {
+  exportNameModal.classList.add('hidden');
+  _pendingExport = null;
+});
+
+exportNameModal.addEventListener('click', function(e) {
+  if (e.target === exportNameModal) {
+    exportNameModal.classList.add('hidden');
+    _pendingExport = null;
+  }
+});
+
+exportNameInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter')  exportNameConfirm.click();
+  if (e.key === 'Escape') exportNameCancel.click();
+});
+
 exportCsvBtn.addEventListener('click', function() {
-  ScheduleApp.exportCSVByDept(loadedSchedules);
+  _showExportNamePrompt('Export CSV', _defaultExportPrefix(), '.csv', function(name) {
+    ScheduleApp.exportCSVByDept(loadedSchedules, name);
+  });
 });
 
 exportXlsxBtn.addEventListener('click', function() {
-  ScheduleApp.exportXLSX(loadedSchedules);
+  _showExportNamePrompt('Export Excel', _defaultExportPrefix() + '_schedule_changes', '.xlsx', function(name) {
+    ScheduleApp.exportXLSX(loadedSchedules, name);
+  });
 });
 
 addSectionBtn.addEventListener('click', function() {
