@@ -9,7 +9,11 @@ var SNAP_BLOCKS = {
     { start: '1:25pm',  end: '2:45pm'  },
     { start: '3:00pm',  end: '4:20pm'  },
     { start: '4:35pm',  end: '5:55pm'  },
-    { start: '6:00pm',  end: '9:00pm'  }
+    { start: '5:15pm',  end: '6:35pm'  },
+    { start: '5:30pm',  end: '7:30pm'  },
+    { start: '6:00pm',  end: '9:00pm'  },
+    { start: '7:00pm',  end: '8:20pm'  },
+    { start: '8:00pm',  end: '10:00pm' }
   ],
   TTh: [
     { start: '7:30am',  end: '8:50am'  },
@@ -18,7 +22,11 @@ var SNAP_BLOCKS = {
     { start: '12:25pm', end: '1:45pm'  },
     { start: '2:00pm',  end: '3:20pm'  },
     { start: '3:40pm',  end: '5:00pm'  },
-    { start: '6:00pm',  end: '9:00pm'  }
+    { start: '5:15pm',  end: '6:35pm'  },
+    { start: '5:30pm',  end: '7:30pm'  },
+    { start: '6:00pm',  end: '9:00pm'  },
+    { start: '7:00pm',  end: '8:20pm'  },
+    { start: '8:00pm',  end: '10:00pm' }
   ]
 };
 
