@@ -1231,3 +1231,14 @@ body.edit-mode .toolbar h1:hover {
   background: #fee2e2 !important;
   border-color: #f87171 !important;
 }
+
+.sm-revert-btn {
+  background: #fffbeb !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+}
+
+.sm-revert-btn:hover {
+  background: #fef3c7 !important;
+  border-color: #f59e0b !important;
+}

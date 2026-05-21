@@ -271,6 +271,9 @@ document.addEventListener('mouseup', function(e) {
   _clearSnapIndicator();
 
   if (state.didMove && state.pendingSnap) {
+    if (!state.section._isNew && !state.section._original) {
+      state.section._original = ScheduleApp.snapshotSection(state.section);
+    }
     state.section.startTime = state.pendingSnap.start;
     state.section.endTime   = state.pendingSnap.end;
     if (state.pendingDays) state.section.days = state.pendingDays;

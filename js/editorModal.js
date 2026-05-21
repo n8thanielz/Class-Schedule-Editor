@@ -112,6 +112,17 @@ function _populateModal(section, fileIndex) {
 
     document.getElementById('sm-delete-btn').classList.remove('hidden');
     document.getElementById('sm-delete-btn').dataset.sectionId = section.id;
+
+    var revertBtn = document.getElementById('sm-revert-btn');
+    if (section._isNew) {
+      revertBtn.textContent = 'Remove Section';
+      revertBtn.classList.remove('hidden');
+    } else if (section._original) {
+      revertBtn.textContent = 'Revert to Original';
+      revertBtn.classList.remove('hidden');
+    } else {
+      revertBtn.classList.add('hidden');
+    }
   } else {
     // Add mode defaults
     _toggleNewCourseFields(false);
@@ -130,6 +141,7 @@ function _populateModal(section, fileIndex) {
     document.getElementById('sm-time-preset').value = '';
     document.getElementById('sm-custom-time').classList.add('hidden');
     document.getElementById('sm-delete-btn').classList.add('hidden');
+    document.getElementById('sm-revert-btn').classList.add('hidden');
   }
 
   // Store context
@@ -163,6 +175,28 @@ function _toggleOnlineFields(isOnline) {
   document.getElementById('sm-days-group').classList.toggle('hidden', isOnline);
   document.getElementById('sm-time-group').classList.toggle('hidden', isOnline);
 }
+
+function _snapshotSection(s) {
+  return {
+    courseNumber:   s.courseNumber,
+    courseName:     s.courseName,
+    sectionNumber:  s.sectionNumber,
+    type:           s.type,
+    instructor:     s.instructor,
+    days:           s.days.slice(),
+    startTime:      s.startTime,
+    endTime:        s.endTime,
+    room:           s.room,
+    isOnline:       s.isOnline,
+    doesNotMeet:    s.doesNotMeet,
+    notes:          s.notes,
+    session:        s.session,
+    roomCapRequest: s.roomCapRequest,
+    iCalStart:      s.iCalStart,
+    iCalEnd:        s.iCalEnd
+  };
+}
+ScheduleApp.snapshotSection = _snapshotSection;
 
 function _iCalToDateInput(val) {
   if (!val || val.length !== 8) return '';
@@ -219,6 +253,7 @@ ScheduleApp.initEditorModal = function() {
   var cancelBtn = document.getElementById('sm-cancel-btn');
   var saveBtn   = document.getElementById('sm-save-btn');
   var deleteBtn = document.getElementById('sm-delete-btn');
+  var revertBtn = document.getElementById('sm-revert-btn');
 
   // Close on overlay click
   modal.addEventListener('click', function(e) {
@@ -282,6 +317,9 @@ ScheduleApp.initEditorModal = function() {
 
   // Delete
   deleteBtn.addEventListener('click', _handleDelete);
+
+  // Revert
+  revertBtn.addEventListener('click', _handleRevert);
 };
 
 function _getSelectedDays() {
@@ -378,6 +416,7 @@ function _handleSave() {
     var result = ScheduleApp.findSection(editId);
     if (!result) return;
     var s = result.section;
+    if (!s._isNew && !s._original) s._original = _snapshotSection(s);
     s.courseNumber  = courseNumber;
     s.courseName    = courseName;
     s.sectionNumber = secNum;
@@ -428,6 +467,49 @@ function _handleSave() {
   }
 
   ScheduleApp.markDirty();
+  modal.classList.add('hidden');
+  ScheduleApp.triggerRenderAll();
+}
+
+function _handleRevert() {
+  var modal  = document.getElementById('section-modal');
+  var editId = modal.dataset.editId;
+  if (!editId) return;
+
+  var result = ScheduleApp.findSection(editId);
+  if (!result) return;
+  var s = result.section;
+
+  if (s._isNew) {
+    if (!confirm('Remove this new section entirely?')) return;
+    var schedules = ScheduleApp.getLoadedSchedules();
+    var arr = schedules[s._fileIndex].sections;
+    var idx = arr.indexOf(s);
+    if (idx !== -1) arr.splice(idx, 1);
+  } else if (s._original) {
+    if (!confirm('Revert this section to its original state?')) return;
+    var orig = s._original;
+    s.courseNumber   = orig.courseNumber;
+    s.courseName     = orig.courseName;
+    s.sectionNumber  = orig.sectionNumber;
+    s.type           = orig.type;
+    s.instructor     = orig.instructor;
+    s.days           = orig.days.slice();
+    s.startTime      = orig.startTime;
+    s.endTime        = orig.endTime;
+    s.room           = orig.room;
+    s.isOnline       = orig.isOnline;
+    s.doesNotMeet    = orig.doesNotMeet;
+    s.notes          = orig.notes;
+    s.session        = orig.session;
+    s.roomCapRequest = orig.roomCapRequest;
+    s.iCalStart      = orig.iCalStart;
+    s.iCalEnd        = orig.iCalEnd;
+    s._modified      = false;
+    s._deleted       = false;
+    delete s._original;
+  }
+
   modal.classList.add('hidden');
   ScheduleApp.triggerRenderAll();
 }
