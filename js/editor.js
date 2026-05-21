@@ -286,6 +286,7 @@ document.addEventListener('mouseup', function(e) {
     state.section.startTime = state.pendingSnap.start;
     state.section.endTime   = state.pendingSnap.end;
     if (state.pendingDays) state.section.days = state.pendingDays;
+    if (!state.section.isOnline) state.section.room = 'Request General Assignment';
     state.section._modified = true;
     ScheduleApp.markDirty();
     ScheduleApp.triggerRenderAll();
