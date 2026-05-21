@@ -58,7 +58,11 @@ function _populateModal(section, fileIndex) {
       instSeen[s.instructor] = true;
     });
   });
-  Object.keys(instSeen).sort().forEach(function(name) {
+  Object.keys(instSeen).sort(function(a, b) {
+    if (a === 'Staff') return 1;
+    if (b === 'Staff') return -1;
+    return a.localeCompare(b);
+  }).forEach(function(name) {
     var opt = document.createElement('option');
     opt.value = name;
     instList.appendChild(opt);
