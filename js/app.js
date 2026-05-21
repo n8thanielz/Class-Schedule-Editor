@@ -26,9 +26,14 @@ var exportNameExt     = document.getElementById('export-name-ext');
 var exportNameTitle   = document.getElementById('export-name-title');
 var exportNameConfirm = document.getElementById('export-name-confirm');
 var exportNameCancel  = document.getElementById('export-name-cancel');
+var conflictModal        = document.getElementById('conflict-modal');
+var conflictModalBody    = document.getElementById('conflict-modal-body');
+var conflictModalConfirm = document.getElementById('conflict-modal-confirm');
+var conflictModalCancel  = document.getElementById('conflict-modal-cancel');
 
 var loadedSchedules = [];
 var _customTitle    = null;
+var _conflictPairs  = [];
 
 // Bridge functions for editor modules
 ScheduleApp.getLoadedSchedules = function() { return loadedSchedules; };
@@ -47,6 +52,59 @@ function buildTitle() {
   return depts.length ? prefix + depts.join(' + ') + ' Schedule' : 'Combined Schedule';
 }
 
+function _markInstructorConflicts() {
+  _conflictPairs = [];
+  var checkable = [];
+  loadedSchedules.forEach(function(sch) {
+    sch.sections.forEach(function(s) {
+      s._instructorConflict = false;
+      if (!s._deleted && s.days.length && s.startTime && s.endTime &&
+          s.instructor && s.instructor !== 'Staff') {
+        checkable.push(s);
+      }
+    });
+  });
+  for (var i = 0; i < checkable.length; i++) {
+    for (var j = i + 1; j < checkable.length; j++) {
+      var a = checkable[i], b = checkable[j];
+      if (a.instructor !== b.instructor) continue;
+      var sharedDay = a.days.some(function(d) { return b.days.indexOf(d) !== -1; });
+      if (!sharedDay) continue;
+      var aStart = ScheduleApp.timeToMinutes(a.startTime);
+      var aEnd   = ScheduleApp.timeToMinutes(a.endTime);
+      var bStart = ScheduleApp.timeToMinutes(b.startTime);
+      var bEnd   = ScheduleApp.timeToMinutes(b.endTime);
+      if (aStart < bEnd && aEnd > bStart) {
+        a._instructorConflict = true;
+        b._instructorConflict = true;
+        _conflictPairs.push({ a: a, b: b });
+      }
+    }
+  }
+}
+
+function _showConflictWarning(callback) {
+  if (!_conflictPairs.length) { callback(); return; }
+
+  var html = '<p>The following instructors have overlapping sections. Resolve before exporting or proceed anyway.</p><ul class="conflict-list">';
+  _conflictPairs.forEach(function(pair) {
+    var a = pair.a, b = pair.b;
+    var shared = a.days.filter(function(d) { return b.days.indexOf(d) !== -1; }).join('/');
+    html += '<li><strong>' + a.instructor + '</strong>: ' +
+      a.courseNumber + '-' + a.sectionNumber +
+      ' (' + ScheduleApp.formatTime(a.startTime) + '–' + ScheduleApp.formatTime(a.endTime) + ')' +
+      ' &amp; ' +
+      b.courseNumber + '-' + b.sectionNumber +
+      ' (' + ScheduleApp.formatTime(b.startTime) + '–' + ScheduleApp.formatTime(b.endTime) + ')' +
+      ' on ' + shared + '</li>';
+  });
+  html += '</ul>';
+
+  conflictModalBody.innerHTML = html;
+  conflictModal._callback = callback;
+  conflictModal.classList.remove('hidden');
+}
+
 function mergeSchedules() {
   var allSections = [];
   for (var i = 0; i < loadedSchedules.length; i++) {
@@ -56,6 +114,7 @@ function mergeSchedules() {
 }
 
 function renderAll() {
+  _markInstructorConflicts();
   var merged = mergeSchedules();
   scheduleTitle.textContent = merged.semester;
   ScheduleApp.renderSchedule(scheduleGrid, merged);
@@ -293,15 +352,38 @@ exportNameInput.addEventListener('keydown', function(e) {
 });
 
 exportCsvBtn.addEventListener('click', function() {
-  _showExportNamePrompt('Export CSV', _defaultExportPrefix(), '.csv', function(name) {
-    ScheduleApp.exportCSVByDept(loadedSchedules, name);
+  _showConflictWarning(function() {
+    _showExportNamePrompt('Export CSV', _defaultExportPrefix(), '.csv', function(name) {
+      ScheduleApp.exportCSVByDept(loadedSchedules, name);
+    });
   });
 });
 
 exportXlsxBtn.addEventListener('click', function() {
-  _showExportNamePrompt('Export Excel', _defaultExportPrefix() + '_schedule_changes', '.xlsx', function(name) {
-    ScheduleApp.exportXLSX(loadedSchedules, name);
+  _showConflictWarning(function() {
+    _showExportNamePrompt('Export Excel', _defaultExportPrefix() + '_schedule_changes', '.xlsx', function(name) {
+      ScheduleApp.exportXLSX(loadedSchedules, name);
+    });
   });
+});
+
+conflictModalConfirm.addEventListener('click', function() {
+  conflictModal.classList.add('hidden');
+  var cb = conflictModal._callback;
+  conflictModal._callback = null;
+  if (cb) cb();
+});
+
+conflictModalCancel.addEventListener('click', function() {
+  conflictModal.classList.add('hidden');
+  conflictModal._callback = null;
+});
+
+conflictModal.addEventListener('click', function(e) {
+  if (e.target === conflictModal) {
+    conflictModal.classList.add('hidden');
+    conflictModal._callback = null;
+  }
 });
 
 addSectionBtn.addEventListener('click', function() {

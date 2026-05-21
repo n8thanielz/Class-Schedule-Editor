@@ -111,7 +111,10 @@ ScheduleApp.renderSchedule = function(container, schedule) {
       block.style.width  = (lyt.width * 100).toFixed(2) + '%';
       block.style.background = color;
 
+      if (s._instructorConflict) block.classList.add('instructor-conflict');
+
       block.title = [
+        s._instructorConflict ? '⚠ Instructor has overlapping sections' : '',
         s.courseNumber + ' – ' + s.courseName,
         'Section ' + s.sectionNumber + ' (' + s.type + ')',
         'Instructor: ' + s.instructor,
@@ -135,7 +138,7 @@ ScheduleApp.renderSchedule = function(container, schedule) {
       block.appendChild(numEl);
 
       if (height >= 28) {
-        var instEl = el('div', 'block-instructor');
+        var instEl = el('div', s._instructorConflict ? 'block-instructor conflict-instructor' : 'block-instructor');
         instEl.textContent = s.instructor;
         block.appendChild(instEl);
       }
