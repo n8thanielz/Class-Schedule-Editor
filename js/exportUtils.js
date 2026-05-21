@@ -97,11 +97,13 @@ ScheduleApp.applyExportTransform = function(isLandscape) {
 // btn: optional element whose label is updated during print.
 // afterPrint: optional callback invoked after the print dialog closes.
 ScheduleApp.printNow = function(btn, afterPrint) {
+  if (btn && btn.disabled) return;
   var origLabel    = btn ? btn.textContent : '';
   var scheduleView = document.getElementById('schedule-view');
   var isLandscape  = ScheduleApp.shouldUseLandscape();
   var result       = ScheduleApp.applyExportTransform(isLandscape);
 
+  if (btn) btn.disabled = true;
   scheduleView.style.width    = result.availW + 'px';
   scheduleView.style.height   = result.totalH + 'px';
   scheduleView.style.overflow = 'hidden';
@@ -115,18 +117,25 @@ ScheduleApp.printNow = function(btn, afterPrint) {
     if (btn) btn.textContent = 'Printing (Landscape)…';
   }
 
+  var restored = false;
+  var fallbackTimer;
+
   function restore() {
+    if (restored) return;
+    restored = true;
+    clearTimeout(fallbackTimer);
     result.restore();
     scheduleView.style.width    = '';
     scheduleView.style.height   = '';
     scheduleView.style.overflow = '';
     document.body.classList.remove('exporting');
     if (styleEl) { document.head.removeChild(styleEl); }
-    if (btn) btn.textContent = origLabel;
+    if (btn) { btn.disabled = false; btn.textContent = origLabel; }
     window.removeEventListener('afterprint', restore);
     if (afterPrint) afterPrint();
   }
 
+  fallbackTimer = setTimeout(restore, 30000);
   window.addEventListener('afterprint', restore);
   window.print();
 };

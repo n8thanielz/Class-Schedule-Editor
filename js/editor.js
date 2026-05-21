@@ -290,9 +290,12 @@ document.addEventListener('mouseup', function(e) {
     ScheduleApp.markDirty();
     ScheduleApp.triggerRenderAll();
   } else if (state.didMove) {
-    // No valid snap — revert visual
     state.blocks.forEach(function(b, i) {
       b.style.top = state.origTops[i] + 'px';
+    });
+    state.blocks.forEach(function(b) {
+      b.classList.add('snap-failed');
+      setTimeout(function() { b.classList.remove('snap-failed'); }, 450);
     });
   }
   // If didMove is false → click handler fires naturally

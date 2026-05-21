@@ -261,9 +261,13 @@ ScheduleApp.initEditorModal = function() {
   var deleteBtn = document.getElementById('sm-delete-btn');
   var revertBtn = document.getElementById('sm-revert-btn');
 
-  // Close on overlay click
+  // Close on overlay click — confirm if there's content to avoid accidental data loss
   modal.addEventListener('click', function(e) {
-    if (e.target === modal) modal.classList.add('hidden');
+    if (e.target !== modal) return;
+    var editId = modal.dataset.editId;
+    var secNum = document.getElementById('sm-section-num').value.trim();
+    if ((editId || secNum) && !confirm('Close without saving?')) return;
+    modal.classList.add('hidden');
   });
 
   cancelBtn.addEventListener('click', function() {

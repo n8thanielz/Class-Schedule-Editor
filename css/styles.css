@@ -1272,3 +1272,13 @@ body.edit-mode .toolbar h1:hover {
   background: #fef3c7 !important;
   border-color: #f59e0b !important;
 }
+
+/* ── Drag snap failure feedback ── */
+@keyframes snap-fail-flash {
+  0%   { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0.0); }
+  30%  { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.65); }
+  100% { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0.0); }
+}
+.snap-failed {
+  animation: snap-fail-flash 0.45s ease-out;
+}

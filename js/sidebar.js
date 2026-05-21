@@ -692,6 +692,7 @@ function makePresetsSection() {
         delBtn.textContent = '×';
         delBtn.title = 'Delete preset';
         delBtn.addEventListener('click', function() {
+          if (!confirm('Delete preset "' + preset.name + '"?')) return;
           var all = loadPresets();
           all.splice(idx, 1);
           savePresets(all);
