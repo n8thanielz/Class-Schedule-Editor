@@ -53,7 +53,6 @@ function renderAll() {
   var merged = mergeSchedules();
   scheduleTitle.textContent = merged.semester;
   ScheduleApp.renderSchedule(scheduleGrid, merged);
-  ScheduleApp.attachEditorBlockListeners();
 
   // Apply persisted hide-online preference before the panel renders so it
   // picks up wasUserHidden correctly inside renderOnlinePanel.
@@ -61,6 +60,7 @@ function renderAll() {
 
   ScheduleApp.renderOnlinePanel(onlinePanel, merged);
   ScheduleApp.renderSidebar(courseSidebar, merged, loadedSchedules, removeFile);
+  ScheduleApp.attachEditorBlockListeners();
 
   // Sync toolbar button with actual panel state after render
   var isHidden = onlinePanel.dataset.userHidden === 'true';
