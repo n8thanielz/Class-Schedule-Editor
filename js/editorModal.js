@@ -48,7 +48,7 @@ function _populateModal(section, fileIndex) {
     deptSelect.appendChild(opt);
   });
 
-  // Build instructor datalist
+  // Build instructor datalist (sorted alphabetically)
   var instList = document.getElementById('sm-instructor-list');
   instList.innerHTML = '';
   var instSeen = {};
@@ -56,10 +56,12 @@ function _populateModal(section, fileIndex) {
     sch.sections.forEach(function(s) {
       if (!s.instructor || instSeen[s.instructor]) return;
       instSeen[s.instructor] = true;
-      var opt = document.createElement('option');
-      opt.value = s.instructor;
-      instList.appendChild(opt);
     });
+  });
+  Object.keys(instSeen).sort().forEach(function(name) {
+    var opt = document.createElement('option');
+    opt.value = name;
+    instList.appendChild(opt);
   });
 
   // Populate time presets based on days
