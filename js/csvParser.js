@@ -199,7 +199,7 @@ ScheduleApp.parseCSV = function(file) {
             var merged = false;
             for (var p = 0; p < parsed.length; p++) {
               var ps = parsed[p];
-              if (ps.start === tm[2] && ps.end === tm[3] && ps.room === room && ps.dateRange === dr) {
+              if (ps.start === tm[2] && ps.end === tm[3] && ps.dateRange === dr) {
                 for (var d = 0; d < days.length; d++)
                   if (ps.days.indexOf(days[d]) === -1) ps.days.push(days[d]);
                 merged = true;
