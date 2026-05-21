@@ -73,7 +73,9 @@ function _populateModal(section, fileIndex) {
     document.getElementById('sm-section-type').value = section.type;
     document.getElementById('sm-instructor').value   = section.instructor;
     document.getElementById('sm-room').value         = section.room || '';
-    document.getElementById('sm-inst-method').value  = _inferInstMethod(section);
+    var editMethod = _inferInstMethod(section);
+    document.getElementById('sm-inst-method').value  = editMethod;
+    _toggleOnlineFields(editMethod === 'Online');
     document.getElementById('sm-room-cap').value     = section.roomCapRequest || '';
     document.getElementById('sm-session').value      = section.session || 'Regular Academic Session';
     _toggleSessionDates(section.session === 'Miscellaneous');
@@ -118,6 +120,7 @@ function _populateModal(section, fileIndex) {
     document.getElementById('sm-instructor').value   = '';
     document.getElementById('sm-room').value         = '';
     document.getElementById('sm-inst-method').value  = 'In Person';
+    _toggleOnlineFields(false);
     document.getElementById('sm-room-cap').value     = '';
     document.getElementById('sm-session').value      = 'Regular Academic Session';
     _toggleSessionDates(false);
@@ -154,6 +157,11 @@ function _toggleNewCourseFields(show) {
 
 function _toggleSessionDates(show) {
   document.getElementById('sm-session-dates').classList.toggle('hidden', !show);
+}
+
+function _toggleOnlineFields(isOnline) {
+  document.getElementById('sm-days-group').classList.toggle('hidden', isOnline);
+  document.getElementById('sm-time-group').classList.toggle('hidden', isOnline);
 }
 
 function _iCalToDateInput(val) {
@@ -253,6 +261,11 @@ ScheduleApp.initEditorModal = function() {
     });
   });
 
+  // Delivery method → show/hide day/time fields for Online
+  document.getElementById('sm-inst-method').addEventListener('change', function() {
+    _toggleOnlineFields(this.value === 'Online');
+  });
+
   // Session → show/hide custom date inputs
   document.getElementById('sm-session').addEventListener('change', function() {
     _toggleSessionDates(this.value === 'Miscellaneous');
@@ -328,18 +341,23 @@ function _handleSave() {
     return;
   }
 
-  if (!days.length)    { alert('Please select at least one day.'); return; }
-
-  // Resolve time
+  // Resolve time and days — not required for Online sections
   var startTime, endTime;
-  if (presetEl.value === 'custom' || presetEl.value === '') {
-    startTime = document.getElementById('sm-start-time').value.trim();
-    endTime   = document.getElementById('sm-end-time').value.trim();
-    if (!startTime || !endTime) { alert('Please enter start and end times.'); return; }
+  if (method === 'Online') {
+    days      = [];
+    startTime = '';
+    endTime   = '';
   } else {
-    var opt = presetEl.options[presetEl.selectedIndex];
-    startTime = opt.dataset.start;
-    endTime   = opt.dataset.end;
+    if (!days.length) { alert('Please select at least one day.'); return; }
+    if (presetEl.value === 'custom' || presetEl.value === '') {
+      startTime = document.getElementById('sm-start-time').value.trim();
+      endTime   = document.getElementById('sm-end-time').value.trim();
+      if (!startTime || !endTime) { alert('Please enter start and end times.'); return; }
+    } else {
+      var opt = presetEl.options[presetEl.selectedIndex];
+      startTime = opt.dataset.start;
+      endTime   = opt.dataset.end;
+    }
   }
 
   var session     = document.getElementById('sm-session').value;
