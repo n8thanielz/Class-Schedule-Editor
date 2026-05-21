@@ -104,10 +104,11 @@ function _isTThFamily(days) {
 }
 
 // Given the hovered day, return the target day array.
-// If hovering over the same family as original, return original unchanged.
-// If crossing to a new family, return the canonical 2-day set for that family.
+// Single-day classes just follow the cursor to that one day.
+// Multi-day classes convert to the canonical 2-day set for the target family.
 function _targetDays(origDays, hoveredDay) {
   if (!hoveredDay) return origDays;
+  if (origDays.length === 1) return [hoveredDay];
   var hoverMW  = _MW_DAYS.indexOf(hoveredDay)  !== -1;
   var hoverTTh = _TTH_DAYS.indexOf(hoveredDay) !== -1;
   if (hoverMW  && _isMWFamily(origDays))  return origDays;
