@@ -1,5 +1,70 @@
 window.ScheduleApp = window.ScheduleApp || {};
 
+// ── Shared parsing helpers (day/time/room/instructor) ─────────────────────────
+
+var DAY_COMBOS = ['MTWThF','MWThF','MTWTh','MWTh','MTTh','TWTh','MWF','TTh','MW','MT','MF','TF','WF','FSa','Th','Sa','M','T','W','F'];
+var DAY_PATTERN = '(' + DAY_COMBOS.join('|') + ')';
+var TIME_PART   = '(\\d{1,2}(?::\\d{2})?[ap]m)';
+var FULL_TIME_RE = new RegExp(DAY_PATTERN + '\\s+' + TIME_PART + '-' + TIME_PART, 'gi');
+
+function parseDays(dayStr) {
+  var result = [], s = dayStr;
+  if (s.indexOf('Th') !== -1) { result.push('Th'); s = s.replace(/Th/g, ''); }
+  if (s.indexOf('Sa') !== -1) { result.push('Sa'); s = s.replace(/Sa/g, ''); }
+  if (s.indexOf('M')  !== -1) result.push('M');
+  if (s.indexOf('T')  !== -1) result.push('T');
+  if (s.indexOf('W')  !== -1) result.push('W');
+  if (s.indexOf('F')  !== -1) result.push('F');
+  return result;
+}
+
+function _toTitleCase(s) {
+  return s.replace(/\w\S*/g, function(w) {
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  });
+}
+
+function parseInstructor(raw) {
+  if (!raw) return 'Staff';
+  var clean = raw
+    .replace(/\s*\(\d{5,9}\)\s*/g, ' ')
+    .replace(/\[Primary\s*Instructor\]/gi, '')
+    .replace(/\[.*?\]/g, '')
+    .trim();
+  var entry = clean.split(';')[0].trim();
+  if (!entry) return 'Staff';
+  var parts = entry.split(',');
+  var lastName  = _toTitleCase(parts[0].trim());
+  if (parts.length < 2 || !parts[1].trim()) return lastName;
+  var firstName = _toTitleCase(parts[1].trim());
+  return firstName + ' ' + lastName;
+}
+
+function parseRoom(raw) {
+  if (!raw) return '';
+  var s = raw.trim()
+    .replace(/\[Primary\s+Instructor\]/gi, '')
+    .replace(/Instructor\]/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!s) return '';
+  if (/^(CANVAS|ONLINE)$/i.test(s)) return s.toUpperCase();
+  var stripped = s.replace(/^[0-9]{6,12}[A-Za-z]?\s*-\s*/, '').trim();
+  if (!stripped) return '';
+  if (/^(CANVAS|ONLINE)$/i.test(stripped)) return stripped.toUpperCase();
+  if (/garff.*executive|executive.*garff|Request.*(?:GARFF|SFEBB|CRCC)/i.test(stripped)) {
+    var bm = stripped.match(/(GARFF|SFEBB|CRCC)/i);
+    return bm ? bm[1].toUpperCase() : 'GARFF';
+  }
+  var m = stripped.match(/^([A-Za-z]+(?:\s+[A-Za-z]+)?\s+[\w]+)/);
+  if (m) return m[1].trim();
+  if (/garff/i.test(stripped))  return 'GARFF';
+  if (/canvas/i.test(stripped)) return 'CANVAS';
+  return stripped;
+}
+
+// ── Section type map ──────────────────────────────────────────────────────────
+
 var CSV_SEC_TYPE = {
   'lecture':                 'LEC',
   'seminar':                 'SEM',
