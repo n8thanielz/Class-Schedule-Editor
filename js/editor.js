@@ -179,6 +179,12 @@ function _attachBlockListeners() {
       block.addEventListener('click',     _onBlockClick);
     }
   });
+  document.querySelectorAll('.online-card').forEach(function(card) {
+    if (!card._editorBound) {
+      card._editorBound = true;
+      card.addEventListener('click', _onBlockClick);
+    }
+  });
 }
 
 ScheduleApp.attachEditorBlockListeners = _attachBlockListeners;
