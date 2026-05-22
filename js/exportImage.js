@@ -1,21 +1,23 @@
 document.getElementById('export-pdf-btn').addEventListener('click', function() {
+  var defaultName = ScheduleApp.defaultExportPrefix();
+  ScheduleApp.showExportNamePrompt('Export PDF', defaultName, '.pdf', function(name) {
+    _doExportPDF(name + '.pdf');
+  });
+});
+
+function _doExportPDF(filename) {
   var btn            = document.getElementById('export-pdf-btn');
   var sidebar        = document.getElementById('course-sidebar');
   var toolbarActions = document.querySelector('.toolbar-actions');
   var toolbar        = document.querySelector('.toolbar');
   var scheduleView   = document.getElementById('schedule-view');
   var scheduleBody   = document.querySelector('.schedule-body');
-  var titleEl        = document.getElementById('schedule-title');
-
-  var filename = (titleEl ? titleEl.textContent : 'schedule')
-    .replace(/[^a-z0-9 _-]/gi, '_').trim() + '.pdf';
 
   var isLandscape = ScheduleApp.shouldUseLandscape();
 
   btn.disabled    = true;
   btn.textContent = isLandscape ? 'Exporting (Landscape)…' : 'Exporting…';
 
-  // Hide elements not wanted in the export
   sidebar.style.display        = 'none';
   toolbarActions.style.display = 'none';
   toolbar.style.position       = 'static';
@@ -57,4 +59,4 @@ document.getElementById('export-pdf-btn').addEventListener('click', function() {
     .save()
     .then(restore)
     .catch(function(err) { restore(); console.error('Export failed:', err); });
-});
+}

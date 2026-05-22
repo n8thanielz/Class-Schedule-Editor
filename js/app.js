@@ -37,8 +37,10 @@ var _conflictPairs     = [];
 var _roomConflictPairs = [];
 
 // Bridge functions for editor modules
-ScheduleApp.getLoadedSchedules = function() { return loadedSchedules; };
-ScheduleApp.triggerRenderAll   = function() { renderAll(); };
+ScheduleApp.getLoadedSchedules    = function() { return loadedSchedules; };
+ScheduleApp.triggerRenderAll      = function() { renderAll(); };
+ScheduleApp.showExportNamePrompt  = function(title, defaultName, ext, cb) { _showExportNamePrompt(title, defaultName, ext, cb); };
+ScheduleApp.defaultExportPrefix   = function() { return _defaultExportPrefix(); };
 
 function buildTitle() {
   if (_customTitle) return _customTitle;
