@@ -55,7 +55,7 @@ ScheduleApp.exportInstructorICal = function(instructor, sections, semId) {
     var dateStr  = _iCalDateStr(firstDate);
     var startT   = _timeToICalStr(s.startTime);
     var endT     = _timeToICalStr(s.endTime);
-    var untilStr = s.iCalEnd + 'T235959Z';
+    var untilStr = _untilStr(s.iCalEnd);
 
     var uid = (s.courseNumber + '-' + s.sectionNumber + '-' + s.iCalStart)
                 .replace(/\s+/g, '') + '@schedule-visualizer';
@@ -133,7 +133,7 @@ ScheduleApp.exportGridICal = function(sections, semId, title) {
     var dateStr  = _iCalDateStr(firstDate);
     var startT   = _timeToICalStr(s.startTime);
     var endT     = _timeToICalStr(s.endTime);
-    var untilStr = s.iCalEnd + 'T235959Z';
+    var untilStr = _untilStr(s.iCalEnd);
     var uid      = (s.courseNumber + '-' + s.sectionNumber + '-' + s.iCalStart)
                      .replace(/\s+/g, '') + '@schedule-visualizer';
     var desc     = [
@@ -183,6 +183,19 @@ function _firstOccurrence(isoDate, days) {
 
 function _iCalDateStr(date) {
   return date.getFullYear() + _p2(date.getMonth() + 1) + _p2(date.getDate());
+}
+
+// Returns RRULE UNTIL value: midnight UTC on the day after iCalEnd (YYYYMMDD).
+// Using the next day at 00:00:00Z ensures the end-date's events are always
+// included regardless of local timezone offset.
+function _untilStr(iCalEnd) {
+  var y  = parseInt(iCalEnd.slice(0, 4));
+  var mo = parseInt(iCalEnd.slice(4, 6)) - 1;
+  var d  = parseInt(iCalEnd.slice(6, 8));
+  var next = new Date(Date.UTC(y, mo, d + 1));
+  return next.getUTCFullYear() +
+    _p2(next.getUTCMonth() + 1) +
+    _p2(next.getUTCDate()) + 'T000000Z';
 }
 
 // Converts a time string like "9:00am" or "2:30pm" to "HHMMSS"

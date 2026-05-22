@@ -18,6 +18,14 @@ var _TYPE_NAMES_XL = {
 
 var _DAY_ORDER_XL = ['M', 'T', 'W', 'Th', 'F'];
 
+function _normSessionXL(raw) {
+  if (!raw) return 'Regular Academic Session';
+  if (/^1st Half/i.test(raw))      return '1st Half';
+  if (/^2nd Half/i.test(raw))      return '2nd Half';
+  if (/^Miscellaneous/i.test(raw)) return 'Miscellaneous';
+  return 'Regular Academic Session';
+}
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 var _S_HEADER = {
@@ -118,7 +126,7 @@ function _computeChanges(raw, sec, colMap) {
   if (orig('Room')         !== (sec.room || ''))                               changed.push('Room');
   if (orig('Meeting Pattern') !== _meetingPatternXL(sec))                      changed.push('Meeting Pattern');
   if (orig('Inst. Method') !== _instMethodXL(sec))                             changed.push('Delivery');
-  if (sec.session && orig('Session').indexOf(sec.session) === -1)              changed.push('Session');
+  if (sec.session && _normSessionXL(orig('Session')) !== sec.session)          changed.push('Session');
 
   return changed.length ? changed.join(', ') : 'Modified';
 }
