@@ -421,7 +421,9 @@ scheduleTitle.addEventListener('click', function() {
     if (committed) return;
     committed = true;
     var val = input.value.trim();
-    if (val && val !== current) {
+    if (!val) {
+      _customTitle = null;
+    } else if (val !== current) {
       _customTitle = val;
       loadedSchedules.forEach(function(sch) { sch.semPrefix = val; });
       ScheduleApp.markDirty();
