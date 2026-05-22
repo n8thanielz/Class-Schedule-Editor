@@ -112,9 +112,11 @@ ScheduleApp.renderSchedule = function(container, schedule) {
       block.style.background = color;
 
       if (s._instructorConflict) block.classList.add('instructor-conflict');
+      if (s._roomConflict)       block.classList.add('room-conflict');
 
       block.title = [
         s._instructorConflict ? '⚠ Instructor has overlapping sections' : '',
+        s._roomConflict       ? '⚠ Room double-booked' : '',
         s.courseNumber + ' – ' + s.courseName,
         'Section ' + s.sectionNumber + ' (' + s.type + ')',
         'Instructor: ' + s.instructor,
@@ -150,7 +152,7 @@ ScheduleApp.renderSchedule = function(container, schedule) {
       }
 
       if (height >= 60 && s.room) {
-        var roomEl = el('div', 'block-room');
+        var roomEl = el('div', s._roomConflict ? 'block-room conflict-room' : 'block-room');
         roomEl.textContent = s.room;
         block.appendChild(roomEl);
       }

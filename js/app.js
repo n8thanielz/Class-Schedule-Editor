@@ -31,9 +31,10 @@ var conflictModalBody    = document.getElementById('conflict-modal-body');
 var conflictModalConfirm = document.getElementById('conflict-modal-confirm');
 var conflictModalCancel  = document.getElementById('conflict-modal-cancel');
 
-var loadedSchedules = [];
-var _customTitle    = null;
-var _conflictPairs  = [];
+var loadedSchedules    = [];
+var _customTitle       = null;
+var _conflictPairs     = [];
+var _roomConflictPairs = [];
 
 // Bridge functions for editor modules
 ScheduleApp.getLoadedSchedules = function() { return loadedSchedules; };
@@ -88,22 +89,73 @@ function _markInstructorConflicts() {
   }
 }
 
-function _showConflictWarning(callback) {
-  if (!_conflictPairs.length) { callback(); return; }
+function _markRoomConflicts() {
+  _roomConflictPairs = [];
+  var checkable = [];
+  loadedSchedules.forEach(function(sch) {
+    sch.sections.forEach(function(s) {
+      s._roomConflict = false;
+      if (!s._deleted && s.days.length && s.startTime && s.endTime &&
+          s.room && !/^(ONLINE|CANVAS)$/i.test(s.room) && !/^Request/i.test(s.room)) {
+        checkable.push(s);
+      }
+    });
+  });
+  for (var i = 0; i < checkable.length; i++) {
+    for (var j = i + 1; j < checkable.length; j++) {
+      var a = checkable[i], b = checkable[j];
+      if (a.room.toLowerCase() !== b.room.toLowerCase()) continue;
+      var sharedDay = a.days.some(function(d) { return b.days.indexOf(d) !== -1; });
+      if (!sharedDay) continue;
+      var aStart = ScheduleApp.timeToMinutes(a.startTime);
+      var aEnd   = ScheduleApp.timeToMinutes(a.endTime);
+      var bStart = ScheduleApp.timeToMinutes(b.startTime);
+      var bEnd   = ScheduleApp.timeToMinutes(b.endTime);
+      var dateRangesOverlap = true;
+      if (a.iCalStart && a.iCalEnd && b.iCalStart && b.iCalEnd) {
+        dateRangesOverlap = parseInt(a.iCalStart) <= parseInt(b.iCalEnd) &&
+                            parseInt(a.iCalEnd)   >= parseInt(b.iCalStart);
+      }
+      if (aStart < bEnd && aEnd > bStart && dateRangesOverlap) {
+        a._roomConflict = true;
+        b._roomConflict = true;
+        _roomConflictPairs.push({ a: a, b: b });
+      }
+    }
+  }
+}
 
-  var html = '<p>The following instructors have overlapping sections. Resolve before exporting or proceed anyway.</p><ul class="conflict-list">';
-  _conflictPairs.forEach(function(pair) {
-    var a = pair.a, b = pair.b;
+function _showConflictWarning(callback) {
+  if (!_conflictPairs.length && !_roomConflictPairs.length) { callback(); return; }
+
+  function pairRow(a, b, label) {
     var shared = a.days.filter(function(d) { return b.days.indexOf(d) !== -1; }).join('/');
-    html += '<li><strong>' + a.instructor + '</strong>: ' +
+    return '<li><strong>' + label + '</strong>: ' +
       a.courseNumber + '-' + a.sectionNumber +
       ' (' + ScheduleApp.formatTime(a.startTime) + '–' + ScheduleApp.formatTime(a.endTime) + ')' +
       ' &amp; ' +
       b.courseNumber + '-' + b.sectionNumber +
       ' (' + ScheduleApp.formatTime(b.startTime) + '–' + ScheduleApp.formatTime(b.endTime) + ')' +
       ' on ' + shared + '</li>';
-  });
-  html += '</ul>';
+  }
+
+  var html = '<p>The following conflicts were detected. Resolve before exporting or proceed anyway.</p>';
+
+  if (_conflictPairs.length) {
+    html += '<p class="conflict-section-label">Instructor Conflicts</p><ul class="conflict-list">';
+    _conflictPairs.forEach(function(pair) {
+      html += pairRow(pair.a, pair.b, pair.a.instructor);
+    });
+    html += '</ul>';
+  }
+
+  if (_roomConflictPairs.length) {
+    html += '<p class="conflict-section-label">Room Conflicts</p><ul class="conflict-list">';
+    _roomConflictPairs.forEach(function(pair) {
+      html += pairRow(pair.a, pair.b, pair.a.room);
+    });
+    html += '</ul>';
+  }
 
   conflictModalBody.innerHTML = html;
   conflictModal._callback = callback;
@@ -120,6 +172,7 @@ function mergeSchedules() {
 
 function renderAll() {
   _markInstructorConflicts();
+  _markRoomConflicts();
   var merged = mergeSchedules();
   scheduleTitle.textContent = merged.semester;
   ScheduleApp.renderSchedule(scheduleGrid, merged);
