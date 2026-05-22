@@ -157,11 +157,12 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
 
   container.appendChild(instSection.el);
 
-  // Restore previous states. On a re-render (hasPrevState), new courses default to
-  // unchecked and new instructors default to checked.
+  // Restore previous states. On a re-render (hasPrevState), items not in the
+  // snapshot (new courses/instructors from an added file) default to checked so
+  // they're visible immediately.
   if (hasPrevState) {
     container.querySelectorAll('.course-filter-cb').forEach(function(cb) {
-      cb.checked = (cb.dataset.course in prevCourse) ? prevCourse[cb.dataset.course] : false;
+      cb.checked = (cb.dataset.course in prevCourse) ? prevCourse[cb.dataset.course] : true;
       var nameSpan = cb.parentElement.querySelector('.course-filter-name');
       if (nameSpan) nameSpan.classList.toggle('muted', !cb.checked);
     });
@@ -714,9 +715,14 @@ function makePresetsSection() {
       if (ns) ns.classList.toggle('muted', !on);
     });
     document.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
-      cb.checked = true;
+      // Presets saved before instructor filters existed won't have an instructors
+      // map; fall back to checked so nothing is unexpectedly hidden.
+      var on = preset.instructors
+        ? (cb.dataset.instructor in preset.instructors ? preset.instructors[cb.dataset.instructor] : true)
+        : true;
+      cb.checked = on;
       var ns = cb.parentElement.querySelector('.instructor-filter-name');
-      if (ns) ns.classList.remove('muted');
+      if (ns) ns.classList.toggle('muted', !on);
     });
     applyAllVisibility();
     ScheduleApp.relayoutVisible();
@@ -743,8 +749,13 @@ function makePresetsSection() {
       courses[cb.dataset.course] = cb.checked;
     });
 
+    var instructors = {};
+    document.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+      instructors[cb.dataset.instructor] = cb.checked;
+    });
+
     var all = loadPresets();
-    all.push({ id: Date.now().toString(), name: name, courses: courses });
+    all.push({ id: Date.now().toString(), name: name, courses: courses, instructors: instructors });
     savePresets(all);
     hideForm();
     renderList();
