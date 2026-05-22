@@ -324,7 +324,10 @@ ScheduleApp.exportXLSX = function(loadedSchedules, customName) {
     return;
   }
 
-  var filename = customName ? customName + '.xlsx'
+  var safeName = customName
+    ? customName.replace(/[\/\\?*\[\]:]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+    : null;
+  var filename = safeName ? safeName + '.xlsx'
     : (loadedSchedules[0] && loadedSchedules[0].semPrefix
         ? loadedSchedules[0].semPrefix.replace(/\s+/g, '_') + '_schedule_changes.xlsx'
         : 'schedule_changes.xlsx');

@@ -271,6 +271,9 @@ ScheduleApp.initEditorModal = function() {
   });
 
   cancelBtn.addEventListener('click', function() {
+    var editId = modal.dataset.editId;
+    var secNum = document.getElementById('sm-section-num').value.trim();
+    if ((editId || secNum) && !confirm('Close without saving?')) return;
     modal.classList.add('hidden');
   });
 
