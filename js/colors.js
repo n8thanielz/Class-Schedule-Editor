@@ -29,3 +29,22 @@ ScheduleApp.setCourseColor = function(courseNumber, color) {
   _colorCache[courseNumber] = color;
   try { localStorage.setItem('sv_color_' + courseNumber, color); } catch(e) {}
 };
+
+var _secColorCache = {};
+
+ScheduleApp.getSecondaryColor = function(courseNumber) {
+  if (!(courseNumber in _secColorCache)) {
+    try { _secColorCache[courseNumber] = localStorage.getItem('sv_sec_color_' + courseNumber) || ''; } catch(e) { _secColorCache[courseNumber] = ''; }
+  }
+  return _secColorCache[courseNumber];
+};
+
+ScheduleApp.setSecondaryColor = function(courseNumber, color) {
+  _secColorCache[courseNumber] = color;
+  try { localStorage.setItem('sv_sec_color_' + courseNumber, color); } catch(e) {}
+};
+
+ScheduleApp.clearSecondaryColor = function(courseNumber) {
+  _secColorCache[courseNumber] = '';
+  try { localStorage.removeItem('sv_sec_color_' + courseNumber); } catch(e) {}
+};

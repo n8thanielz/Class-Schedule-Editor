@@ -110,6 +110,8 @@ ScheduleApp.renderSchedule = function(container, schedule) {
       block.style.left   = (lyt.left * 100).toFixed(2) + '%';
       block.style.width  = (lyt.width * 100).toFixed(2) + '%';
       block.style.background = color;
+      var secColor = SA.getSecondaryColor(s.courseNumber);
+      if (secColor) block.style.setProperty('--sec-color', secColor);
 
       if (s._instructorConflict) block.classList.add('instructor-conflict');
       if (s._roomConflict)       block.classList.add('room-conflict');

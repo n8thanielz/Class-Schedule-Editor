@@ -350,6 +350,61 @@ function makeCourseRow(course) {
   colorInput.value = ScheduleApp.getCourseColor(course.number);
   colorInput.title = 'Change color for ' + course.number;
 
+  // ── Secondary (tag) color ──────────────────────────────────────────────────
+  var secColor   = ScheduleApp.getSecondaryColor(course.number);
+  var hasSecColor = !!secColor;
+
+  var secWrap = document.createElement('div');
+  secWrap.className = 'course-sec-color-wrap';
+
+  var secAddBtn = document.createElement('button');
+  secAddBtn.type = 'button';
+  secAddBtn.className = 'course-sec-color-add';
+  secAddBtn.title = 'Add tag color stripe';
+  if (hasSecColor) secAddBtn.style.display = 'none';
+
+  var secInput = document.createElement('input');
+  secInput.type = 'color';
+  secInput.className = 'course-sec-color-input';
+  secInput.value = secColor || '#3b82f6';
+  secInput.title = 'Tag color for ' + course.number;
+  if (!hasSecColor) secInput.style.display = 'none';
+
+  var secClearBtn = document.createElement('button');
+  secClearBtn.type = 'button';
+  secClearBtn.className = 'course-sec-color-clear';
+  secClearBtn.textContent = '×';
+  secClearBtn.title = 'Remove tag color';
+  if (!hasSecColor) secClearBtn.style.display = 'none';
+
+  secAddBtn.addEventListener('click', function() {
+    var defaultColor = '#3b82f6';
+    ScheduleApp.setSecondaryColor(course.number, defaultColor);
+    secInput.value = defaultColor;
+    secAddBtn.style.display   = 'none';
+    secInput.style.display    = '';
+    secClearBtn.style.display = '';
+    applySecondaryColor(course.number, defaultColor);
+  });
+
+  secInput.addEventListener('input', function() {
+    ScheduleApp.setSecondaryColor(course.number, secInput.value);
+    applySecondaryColor(course.number, secInput.value);
+  });
+
+  secClearBtn.addEventListener('click', function() {
+    ScheduleApp.clearSecondaryColor(course.number);
+    secAddBtn.style.display   = '';
+    secInput.style.display    = 'none';
+    secClearBtn.style.display = 'none';
+    applySecondaryColor(course.number, '');
+  });
+
+  secWrap.appendChild(secAddBtn);
+  secWrap.appendChild(secInput);
+  secWrap.appendChild(secClearBtn);
+  // ──────────────────────────────────────────────────────────────────────────
+
   var checkLabel = document.createElement('label');
   checkLabel.className = 'course-filter-check-label';
 
@@ -367,6 +422,7 @@ function makeCourseRow(course) {
   checkLabel.appendChild(cb);
   checkLabel.appendChild(nameSpan);
   row.appendChild(colorInput);
+  row.appendChild(secWrap);
   row.appendChild(checkLabel);
 
   cb.addEventListener('change', function() {
@@ -779,4 +835,11 @@ function applyColor(courseNumber, color) {
   for (var i = 0; i < els.length; i++) {
     els[i].style.background = color;
   }
+}
+
+function applySecondaryColor(courseNumber, color) {
+  var sel = '.course-block[data-course="' + courseNumber + '"], .online-card[data-course="' + courseNumber + '"]';
+  document.querySelectorAll(sel).forEach(function(el) {
+    el.style.setProperty('--sec-color', color || 'transparent');
+  });
 }

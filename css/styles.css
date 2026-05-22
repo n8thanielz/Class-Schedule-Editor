@@ -833,6 +833,8 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 }
 
 .online-card {
+  position: relative;
+  overflow: hidden;
   border-radius: 5px;
   padding: 6px 10px;
   border: 1px solid rgba(0,0,0,0.10);
@@ -1272,6 +1274,64 @@ body.edit-mode .toolbar h1:hover {
   background: #fef3c7 !important;
   border-color: #f59e0b !important;
 }
+
+/* ── Secondary (tag) color stripe ── */
+.course-block::before,
+.online-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--sec-color, transparent);
+  pointer-events: none;
+}
+
+.course-sec-color-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.course-sec-color-add {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px dashed #9ca3af;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.course-sec-color-add:hover { border-color: #6b7280; }
+
+.course-sec-color-input {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.15);
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.course-sec-color-clear {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: #d1d5db;
+  color: #6b7280;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.course-sec-color-clear:hover { background: #9ca3af; color: #fff; }
 
 /* ── Conflict indicators (instructor and room) ── */
 .course-block.instructor-conflict,

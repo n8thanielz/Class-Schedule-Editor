@@ -37,8 +37,7 @@ ScheduleApp.renderOnlinePanel = function(container, schedule) {
   });
 
   onlineSections.forEach(function(s) {
-    var deptStripped = s.courseNumber.replace(/^[A-Z]+\s*/i, '');
-    var shortNum = deptStripped + '-' + s.sectionNumber;
+    var shortNum = s.courseNumber + '-' + s.sectionNumber;
     var isOnlineSec = /^09\d/.test(s.sectionNumber);
     var roomLabel = s.room || (isOnlineSec ? 'Online' : '');
 
@@ -48,6 +47,8 @@ ScheduleApp.renderOnlinePanel = function(container, schedule) {
     card.dataset.sectionId   = s.id;
     card.dataset.instructor  = s.instructor;
     card.style.background  = ScheduleApp.getCourseColor(s.courseNumber);
+    var secColor = ScheduleApp.getSecondaryColor(s.courseNumber);
+    if (secColor) card.style.setProperty('--sec-color', secColor);
     card.title = [
       s.courseNumber + ' – ' + s.courseName,
       'Section ' + s.sectionNumber + ' (' + s.type + ')',
