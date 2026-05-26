@@ -26,12 +26,19 @@ function _iCalToCSVDate(iso) {
   return m + '/' + d + '/' + y;
 }
 
+// Normalize time to "8:05am" format (no space, lowercase) so FULL_TIME_RE can re-parse
+// the exported CSV. minutesToDisplay() produces "8:05 AM" which breaks round-trip import.
+function _toCsvTime(t) {
+  var m = String(t || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*([ap]m)$/i);
+  if (!m) return t || '';
+  var mins = parseInt(m[2] || '0');
+  return m[1] + ':' + (mins < 10 ? '0' : '') + mins + m[3].toLowerCase();
+}
+
 function _buildMeetingPattern(section) {
   if (!section.days || !section.days.length || !section.startTime || !section.endTime) return '';
   var dayStr = _daysToStr(section.days);
-  var start  = ScheduleApp.minutesToDisplay(ScheduleApp.timeToMinutes(section.startTime));
-  var end    = ScheduleApp.minutesToDisplay(ScheduleApp.timeToMinutes(section.endTime));
-  return dayStr + ' ' + start + '-' + end;
+  return dayStr + ' ' + _toCsvTime(section.startTime) + '-' + _toCsvTime(section.endTime);
 }
 
 function _buildMeetingsStr(section) {
