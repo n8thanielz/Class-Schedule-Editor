@@ -144,8 +144,7 @@ ScheduleApp.parseCSV = function(file) {
         var semMatch = semRaw.match(/(FALL|SPRING|SUMMER)\s+(\d{4})/i);
         var semPrefix = '';
         if (semMatch) {
-          semPrefix = { fall: 'FA', spring: 'SP', summer: 'SU' }[semMatch[1].toLowerCase()]
-            + ' ' + semMatch[2].slice(2) + ' ';
+          semPrefix = semMatch[0] + ' '; // "Spring 2027 " — full name for display and round-trip
         }
 
         var sections = [];

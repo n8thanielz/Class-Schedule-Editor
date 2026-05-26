@@ -176,6 +176,12 @@ function _exportOne(sch, fileIndex, allSchedules, customPrefix) {
 
   for (var ri = 0; ri < rawRows.length; ri++) {
     var row = rawRows[ri].slice();
+
+    // Keep row-0 semester header in sync with any title edits the user made
+    if (ri === 0 && sch.semPrefix && row.length > 0) {
+      row[0] = sch.semPrefix.trim();
+    }
+
     var c0  = (row[0] || '').trim();
     var c1  = (row[1] || '').trim();
 
