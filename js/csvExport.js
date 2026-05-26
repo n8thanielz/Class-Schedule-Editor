@@ -177,9 +177,12 @@ function _exportOne(sch, fileIndex, allSchedules, customPrefix) {
   for (var ri = 0; ri < rawRows.length; ri++) {
     var row = rawRows[ri].slice();
 
-    // Keep row-0 semester header in sync with any title edits the user made
-    if (ri === 0 && sch.semPrefix && row.length > 0) {
-      row[0] = sch.semPrefix.trim();
+    // Update row-0 semester header: prefer export-dialog prefix, fall back to semPrefix
+    if (ri === 0 && row.length > 0) {
+      var headerVal = customPrefix
+        ? customPrefix.replace(/_/g, ' ').trim()
+        : (sch.semPrefix ? sch.semPrefix.trim() : '');
+      if (headerVal) row[0] = headerVal;
     }
 
     var c0  = (row[0] || '').trim();
