@@ -428,8 +428,8 @@ function makeCourseRow(course) {
 
   var nameSpan = document.createElement('span');
   nameSpan.className = 'course-filter-name';
-  nameSpan.textContent = course.number;
-  nameSpan.title = course.name;
+  nameSpan.textContent = course.number.replace(/^[A-Z]{2,8}\s+/i, ''); // dept prefix is in group header
+  nameSpan.title = course.number + ' – ' + course.name;
 
   var countSpan = document.createElement('span');
   countSpan.className = 'course-section-count';
