@@ -213,7 +213,7 @@ ScheduleApp.parseCSV = function(file) {
           if (!currentCourse) continue;
 
           // Skip cancelled sections
-          if (/^cancelled$/i.test(col(row, 'Status'))) continue;
+          if (/^cancelled/i.test(col(row, 'Status'))) continue;
 
           var secNum      = col(row, 'Section #');
           var courseTitle = col(row, 'Course Title');
