@@ -577,6 +577,13 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 
 .course-filter-name.muted { color: #9ca3af; }
 
+.course-section-count {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-left: 3px;
+  font-weight: 400;
+}
+
 /* ── Loaded Files list ── */
 .file-list {
   display: flex;

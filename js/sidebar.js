@@ -52,6 +52,18 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
   }
 
   // ── Filter Courses (collapsible, open — grouped by department) ──
+  // Count unique sections per course (deduplicated by sectionNumber for multi-session rows)
+  var sectionCounts = {};
+  var seenSecIds    = {};
+  for (var i = 0; i < schedule.sections.length; i++) {
+    var s = schedule.sections[i];
+    if (s._deleted) continue;
+    var sid = s.courseNumber + '|' + s.sectionNumber;
+    if (seenSecIds[sid]) continue;
+    seenSecIds[sid] = true;
+    sectionCounts[s.courseNumber] = (sectionCounts[s.courseNumber] || 0) + 1;
+  }
+
   var seenCourses = {};
   var courseDeptMap   = {};
   var courseDeptOrder = [];
@@ -62,7 +74,7 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
       seenCourses[s.courseNumber] = true;
       var dept = deptFromCourse(s.courseNumber);
       if (!courseDeptMap[dept]) { courseDeptMap[dept] = []; courseDeptOrder.push(dept); }
-      courseDeptMap[dept].push({ number: s.courseNumber, name: s.courseName });
+      courseDeptMap[dept].push({ number: s.courseNumber, name: s.courseName, count: sectionCounts[s.courseNumber] || 0 });
     }
   }
   courseDeptOrder.sort();
@@ -419,8 +431,13 @@ function makeCourseRow(course) {
   nameSpan.textContent = course.number;
   nameSpan.title = course.name;
 
+  var countSpan = document.createElement('span');
+  countSpan.className = 'course-section-count';
+  countSpan.textContent = '(' + course.count + ')';
+
   checkLabel.appendChild(cb);
   checkLabel.appendChild(nameSpan);
+  checkLabel.appendChild(countSpan);
   row.appendChild(colorInput);
   row.appendChild(secWrap);
   row.appendChild(checkLabel);
