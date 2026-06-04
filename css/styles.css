@@ -573,6 +573,8 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .course-filter-name.muted { color: #9ca3af; }
@@ -580,8 +582,10 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 .course-section-count {
   font-size: 10px;
   color: #9ca3af;
-  margin-left: 3px;
   font-weight: 400;
+  margin-left: auto;
+  padding-left: 4px;
+  flex-shrink: 0;
 }
 
 /* ── Loaded Files list ── */
