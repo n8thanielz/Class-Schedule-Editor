@@ -49,6 +49,26 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
     }
 
     container.appendChild(filesSection.el);
+
+    var resetBtn = document.createElement('button');
+    resetBtn.className = 'reset-filters-btn';
+    resetBtn.textContent = 'Reset Filters';
+    resetBtn.title = 'Show all courses and instructors';
+    resetBtn.addEventListener('click', function() {
+      container.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+        cb.checked = true;
+        var ns = cb.parentElement.querySelector('.course-filter-name');
+        if (ns) ns.classList.remove('muted');
+      });
+      container.querySelectorAll('.instructor-filter-cb').forEach(function(cb) {
+        cb.checked = true;
+        var ns = cb.parentElement.querySelector('.instructor-filter-name');
+        if (ns) ns.classList.remove('muted');
+      });
+      applyAllVisibility();
+      ScheduleApp.relayoutVisible();
+    });
+    container.appendChild(resetBtn);
   }
 
   // ── Filter Courses (collapsible, open — grouped by department) ──
