@@ -1,9 +1,20 @@
+:root {
+  --crimson:        #BE0000;
+  --crimson-hover:  #97000A;
+  --crimson-tint:   #FBEFEF;
+  --bg:             #F4F4F1;
+  --surface:        #FFFFFF;
+  --text-primary:   #1D1D20;
+  --text-muted:     #6A6A70;
+  --border:         #E5E5E0;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f0f2f5;
-  color: #1a1a2e;
+  background: var(--bg);
+  color: var(--text-primary);
   min-height: 100vh;
 }
 
@@ -64,8 +75,8 @@ body {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--crimson-tint);
+  color: var(--crimson);
   font-size: 12px;
   font-weight: 700;
   display: flex;
@@ -74,12 +85,12 @@ body {
   margin-top: 2px;
 }
 
-.upload-instructions a { color: #2563eb; text-decoration: none; }
+.upload-instructions a { color: var(--crimson); text-decoration: none; }
 .upload-instructions a:hover { text-decoration: underline; }
 
 .upload-btn {
   display: inline-block;
-  background: #2563eb;
+  background: var(--crimson);
   color: #fff;
   padding: 12px 28px;
   border-radius: 8px;
@@ -89,7 +100,7 @@ body {
   transition: background 0.15s;
 }
 
-.upload-btn:hover { background: #1d4ed8; }
+.upload-btn:hover { background: var(--crimson-hover); }
 
 .upload-btn input[type="file"] {
   display: none;
@@ -126,7 +137,7 @@ body {
   width: 20px;
   height: 20px;
   border: 3px solid #e5e7eb;
-  border-top-color: #2563eb;
+  border-top-color: var(--crimson);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -174,8 +185,8 @@ body {
 }
 
 .toolbar-btn:hover { background: #e5e7eb; }
-.toolbar-btn.active { background: #2563eb; color: #fff; border-color: #1d4ed8; }
-.toolbar-btn.active:hover { background: #1d4ed8; }
+.toolbar-btn.active { background: var(--crimson); color: #fff; border-color: var(--crimson-hover); }
+.toolbar-btn.active:hover { background: var(--crimson-hover); }
 
 .schedule-body {
   display: flex;
@@ -268,10 +279,10 @@ body {
   padding: 4px 8px;
   font-size: 11px;
   font-weight: 600;
-  border: 1px solid #bfdbfe;
+  border: 1px solid rgba(190,0,0,0.25);
   border-radius: 4px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--crimson-tint);
+  color: var(--crimson-hover);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -280,8 +291,8 @@ body {
 }
 
 .preset-name-btn:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
+  background: var(--crimson-tint);
+  border-color: rgba(190,0,0,0.35);
 }
 
 .preset-delete-btn {
@@ -316,16 +327,16 @@ body {
   flex: 1;
   padding: 4px 7px;
   font-size: 11px;
-  border: 1px solid #93c5fd;
+  border: 1px solid rgba(190,0,0,0.35);
   border-radius: 4px;
   outline: none;
-  color: #1a1a2e;
+  color: var(--text-primary);
   min-width: 0;
 }
 
 .preset-name-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 2px rgba(190,0,0,0.15);
 }
 
 .preset-save-confirm,
@@ -341,12 +352,12 @@ body {
 }
 
 .preset-save-confirm {
-  background: #2563eb;
+  background: var(--crimson);
   color: #fff;
-  border-color: #1d4ed8;
+  border-color: var(--crimson-hover);
 }
 
-.preset-save-confirm:hover { background: #1d4ed8; }
+.preset-save-confirm:hover { background: var(--crimson-hover); }
 
 .preset-save-cancel {
   background: #f3f4f6;
@@ -371,9 +382,9 @@ body {
 }
 
 .preset-add-btn:hover {
-  border-color: #2563eb;
-  color: #2563eb;
-  background: #eff6ff;
+  border-color: var(--crimson);
+  color: var(--crimson);
+  background: var(--crimson-tint);
 }
 
 /* ── Department groups ── */
@@ -514,7 +525,7 @@ body {
 }
 .course-filter-row:hover .inst-print-btn,
 .course-filter-row:hover .inst-ical-btn { opacity: 1; }
-.inst-print-btn:hover { background: #2563eb; color: #fff; border-color: #1d4ed8; }
+.inst-print-btn:hover { background: var(--crimson); color: #fff; border-color: var(--crimson-hover); }
 
 .inst-ical-btn {
   flex-shrink: 0;
@@ -563,7 +574,7 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   height: 14px;
   cursor: pointer;
   flex-shrink: 0;
-  accent-color: #2563eb;
+  accent-color: var(--crimson);
 }
 
 .course-filter-name {
@@ -719,6 +730,7 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   white-space: nowrap;
   transform: translateY(-50%);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .day-column {
@@ -787,28 +799,31 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 
 .block-number {
   font-weight: 800;
-  font-size: 12px;
+  font-size: 13.5px;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
 .block-instructor {
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
 .block-time {
-  font-size: 10px;
-  opacity: 0.85;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
 .block-room {
-  font-size: 10px;
-  font-weight: 600;
-  opacity: 0.85;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.62;
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -1002,7 +1017,7 @@ body.print-compact .online-card-dates {
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 14px;
-  color: #1a1a2e;
+  color: var(--text-primary);
 }
 
 .modal-body {
@@ -1012,7 +1027,7 @@ body.print-compact .online-card-dates {
   margin-bottom: 24px;
 }
 
-.modal-body strong { color: #1a1a2e; }
+.modal-body strong { color: var(--text-primary); }
 
 .modal-note {
   margin-top: 10px;
@@ -1042,13 +1057,13 @@ body.print-compact .online-card-dates {
 .modal-btn:hover { background: #e5e7eb; }
 
 .modal-btn-primary {
-  background: #2563eb;
+  background: var(--crimson);
   color: #fff;
-  border-color: #1d4ed8;
+  border-color: var(--crimson-hover);
 }
 
-.modal-btn-primary:hover { background: #1d4ed8; }
-.modal-btn-primary:disabled { background: #93c5fd; border-color: #93c5fd; cursor: default; }
+.modal-btn-primary:hover { background: var(--crimson-hover); }
+.modal-btn-primary:disabled { background: rgba(190,0,0,0.35); border-color: rgba(190,0,0,0.35); cursor: default; }
 
 /* ── Edit Mode ── */
 body.edit-mode .course-block {
@@ -1058,7 +1073,7 @@ body.edit-mode .course-block {
 }
 
 body.edit-mode .course-block:hover {
-  outline-color: rgba(37, 99, 235, 0.55);
+  outline-color: rgba(190,0,0,0.55);
   box-shadow: 0 4px 14px rgba(0,0,0,0.20);
   z-index: 5;
 }
@@ -1068,7 +1083,7 @@ body.edit-mode .course-block:hover {
   cursor: grabbing !important;
   box-shadow: 0 8px 28px rgba(0,0,0,0.28);
   z-index: 50;
-  outline-color: rgba(37, 99, 235, 0.8) !important;
+  outline-color: rgba(190,0,0,0.8) !important;
 }
 
 .snap-indicator {
@@ -1076,8 +1091,8 @@ body.edit-mode .course-block:hover {
   left: 3%;
   right: 3%;
   border-radius: 5px;
-  background: rgba(37, 99, 235, 0.15);
-  border: 2px dashed rgba(37, 99, 235, 0.55);
+  background: rgba(190,0,0,0.15);
+  border: 2px dashed rgba(190,0,0,0.55);
   pointer-events: none;
   z-index: 20;
 }
@@ -1089,7 +1104,7 @@ body.edit-mode .online-card {
 }
 
 body.edit-mode .online-card:hover {
-  outline-color: rgba(37, 99, 235, 0.55);
+  outline-color: rgba(190,0,0,0.55);
   box-shadow: 0 4px 14px rgba(0,0,0,0.20);
 }
 
@@ -1102,7 +1117,7 @@ body.edit-mode .toolbar h1 {
 }
 
 body.edit-mode .toolbar h1:hover {
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(190,0,0,0.08);
 }
 
 #schedule-title-input {
@@ -1111,7 +1126,7 @@ body.edit-mode .toolbar h1:hover {
   font-family: inherit;
   color: inherit;
   background: #fff;
-  border: 2px solid #2563eb;
+  border: 2px solid var(--crimson);
   border-radius: 4px;
   padding: 1px 6px;
   outline: none;
@@ -1188,7 +1203,7 @@ body.edit-mode .toolbar h1:hover {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 13px;
-  color: #1a1a2e;
+  color: var(--text-primary);
   background: #fff;
   outline: none;
   width: 100%;
@@ -1198,8 +1213,8 @@ body.edit-mode .toolbar h1:hover {
 
 .sm-input:focus,
 .sm-select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 2px rgba(190,0,0,0.15);
 }
 
 .sm-new-course-fields {
@@ -1236,9 +1251,9 @@ body.edit-mode .toolbar h1:hover {
 }
 
 .sm-day-cb:has(input:checked) {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: var(--crimson-tint);
+  border-color: rgba(190,0,0,0.35);
+  color: var(--crimson-hover);
 }
 
 .sm-day-cb input[type="checkbox"] {
@@ -1264,9 +1279,9 @@ body.edit-mode .toolbar h1:hover {
 }
 
 .sm-day-quick:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: var(--crimson-tint);
+  border-color: rgba(190,0,0,0.35);
+  color: var(--crimson-hover);
 }
 
 .sm-custom-time {
