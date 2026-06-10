@@ -1,5 +1,13 @@
 window.ScheduleApp = window.ScheduleApp || {};
 
+// ── Solo state (instructor filter) ───────────────────────────────────────────
+var _soloInst    = null;
+var _preSoloSnap = null;
+
+// ── Filter badge refs ─────────────────────────────────────────────────────────
+var _courseBadge = null;
+var _instBadge   = null;
+
 ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRemove) {
   // Snapshot filter states before clearing so they survive a re-render (e.g. Add File).
   // hasPrevState distinguishes a re-render (add/remove file) from a first load.
@@ -105,6 +113,7 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
   var defaultOpen  = !loadedSchedules || loadedSchedules.length <= 1;
 
   var courseSection = makeSection('Filter Courses', defaultOpen);
+  _courseBadge = courseSection.badge;
   for (var d = 0; d < courseDeptOrder.length; d++) {
     courseSection.body.appendChild(makeCourseDeptGroup(courseDeptOrder[d], courseDeptMap[courseDeptOrder[d]], defaultOpen));
   }
@@ -158,7 +167,12 @@ ScheduleApp.renderSidebar = function(container, schedule, loadedSchedules, onRem
     instByDept[instDeptOrder[d]].sort(function(a, b) { return a.localeCompare(b); });
   }
 
+  // Reset solo state on every render (re-render clears DOM refs)
+  _soloInst    = null;
+  _preSoloSnap = null;
+
   var instSection = makeSection('Filter by Instructor', false);
+  _instBadge = instSection.badge;
 
   // Global All / None for the whole instructor section
   var instControls = document.createElement('div');
@@ -249,8 +263,12 @@ function makeSection(title, open) {
   titleEl.style.marginBottom = '0';
   titleEl.textContent = title;
 
+  var badge = document.createElement('span');
+  badge.className = 'filter-badge hidden';
+
   toggle.appendChild(arrow);
   toggle.appendChild(titleEl);
+  toggle.appendChild(badge);
   el.appendChild(toggle);
 
   var body = document.createElement('div');
@@ -264,7 +282,7 @@ function makeSection(title, open) {
     arrow.textContent = isOpen ? '▶' : '▼';
   });
 
-  return { el: el, body: body };
+  return { el: el, body: body, badge: badge };
 }
 
 function makeCourseDeptGroup(dept, courses, open) {
@@ -516,9 +534,46 @@ function makeInstDeptGroup(dept, instructors, instToCourses) {
       nameSpan.className = 'course-filter-name instructor-filter-name';
       nameSpan.textContent = inst;
 
+      var soloHint = document.createElement('span');
+      soloHint.className = 'inst-solo-hint';
+      soloHint.textContent = 'SOLO';
+
       checkLabel.appendChild(cb);
       checkLabel.appendChild(nameSpan);
+      checkLabel.appendChild(soloHint);
       row.appendChild(checkLabel);
+
+      nameSpan.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (_soloInst === inst) {
+          // Restore pre-solo state
+          document.querySelectorAll('.instructor-filter-cb').forEach(function(c) {
+            var on = (_preSoloSnap && c.dataset.instructor in _preSoloSnap)
+              ? _preSoloSnap[c.dataset.instructor] : true;
+            c.checked = on;
+            var ns = c.parentElement.querySelector('.instructor-filter-name');
+            if (ns) ns.classList.toggle('muted', !on);
+          });
+          _soloInst    = null;
+          _preSoloSnap = null;
+        } else {
+          // Snapshot current state then solo this instructor
+          _preSoloSnap = {};
+          document.querySelectorAll('.instructor-filter-cb').forEach(function(c) {
+            _preSoloSnap[c.dataset.instructor] = c.checked;
+          });
+          document.querySelectorAll('.instructor-filter-cb').forEach(function(c) {
+            var on = c.dataset.instructor === inst;
+            c.checked = on;
+            var ns = c.parentElement.querySelector('.instructor-filter-name');
+            if (ns) ns.classList.toggle('muted', !on);
+          });
+          _soloInst = inst;
+        }
+        applyAllVisibility();
+        ScheduleApp.relayoutVisible();
+      });
 
       var printBtn = document.createElement('button');
       printBtn.className = 'inst-print-btn';
@@ -665,6 +720,32 @@ function levelFromCourse(courseNumber) {
   return n + 's';
 }
 
+function _updateFilterBadges() {
+  function setBadge(badge, cbs) {
+    if (!badge || !cbs.length) return;
+    var total   = cbs.length;
+    var visible = 0;
+    cbs.forEach(function(cb) { if (cb.checked) visible++; });
+    badge.textContent = visible + ' of ' + total;
+    badge.classList.remove('hidden');
+    badge.classList.toggle('partial', visible < total);
+  }
+
+  // Deduplicate course CBs by course number (multi-session = multiple CBs for same course)
+  var seenCourse = {};
+  var courseCbs  = [];
+  document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
+    if (!seenCourse[cb.dataset.course]) {
+      seenCourse[cb.dataset.course] = true;
+      courseCbs.push(cb);
+    }
+  });
+  setBadge(_courseBadge, courseCbs);
+
+  var instCbs = Array.from(document.querySelectorAll('.instructor-filter-cb'));
+  setBadge(_instBadge, instCbs);
+}
+
 function applyAllVisibility() {
   var courseVisible = {};
   document.querySelectorAll('.course-filter-cb').forEach(function(cb) {
@@ -698,6 +779,8 @@ function applyAllVisibility() {
       onlinePanel.classList.toggle('hidden', !anyVisible);
     }
   }
+
+  _updateFilterBadges();
 
   // Persist current filter states (suppressed during instructor print shortcut)
   if (!ScheduleApp._suppressPersist) {

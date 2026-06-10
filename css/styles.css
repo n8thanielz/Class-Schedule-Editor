@@ -599,6 +599,42 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   flex-shrink: 0;
 }
 
+/* ── Filter section count badge ── */
+.filter-badge {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 1px 7px;
+  margin-left: auto;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.filter-badge.partial {
+  background: var(--crimson-tint);
+  border-color: rgba(190,0,0,0.25);
+  color: var(--crimson);
+}
+
+/* ── Instructor solo hint ── */
+.inst-solo-hint {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--crimson);
+  opacity: 0;
+  pointer-events: none;
+  padding-left: 4px;
+  flex-shrink: 0;
+  transition: opacity 0.12s;
+}
+
+.course-filter-row:hover .inst-solo-hint { opacity: 1; }
+
 /* ── Loaded Files list ── */
 .file-list {
   display: flex;
