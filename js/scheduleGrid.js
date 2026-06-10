@@ -6,6 +6,10 @@ var DAY_LABELS = { M: 'Monday', T: 'Tuesday', W: 'Wednesday', Th: 'Thursday', F:
 ScheduleApp.renderSchedule = function(container, schedule) {
   container.innerHTML = '';
 
+  // Remove any header strip from a previous render
+  var existingStrip = container.parentNode && container.parentNode.querySelector('.grid-header-strip');
+  if (existingStrip) existingStrip.parentNode.removeChild(existingStrip);
+
   var SA = ScheduleApp;
   var activeSections = schedule.sections.filter(function(s) {
     return s.days.length > 0 && s.startTime && s.endTime;
@@ -20,6 +24,7 @@ ScheduleApp.renderSchedule = function(container, schedule) {
   SA._dayHeaders      = null;
   SA._usedDays        = null;
   SA._gridContainer   = container;
+  SA._headerStrip     = null;
 
   // Only render columns for days that have classes
   var usedDays = DAYS.filter(function(d) {
@@ -31,16 +36,22 @@ ScheduleApp.renderSchedule = function(container, schedule) {
     return;
   }
 
-  container.style.gridTemplateColumns = '70px repeat(' + usedDays.length + ', 1fr)';
+  var colTemplate = '70px repeat(' + usedDays.length + ', 1fr)';
+  container.style.gridTemplateColumns = colTemplate;
 
-  // ── Header row ──────────────────────────────────────────────
-  container.appendChild(el('div', 'grid-header'));  // empty time header
+  // ── Header strip (sticky sibling above the grid) ─────────────
+  var headerStrip = el('div', 'grid-header-strip');
+  headerStrip.style.gridTemplateColumns = colTemplate;
+  container.parentNode.insertBefore(headerStrip, container);
+  SA._headerStrip = headerStrip;
+
+  headerStrip.appendChild(el('div', 'grid-header'));  // empty time header
 
   var dayHeaders = {};
   for (var i = 0; i < usedDays.length; i++) {
     var hdr = el('div', 'grid-header');
     hdr.textContent = DAY_LABELS[usedDays[i]];
-    container.appendChild(hdr);
+    headerStrip.appendChild(hdr);
     dayHeaders[usedDays[i]] = hdr;
   }
 
@@ -254,8 +265,9 @@ ScheduleApp.relayoutVisible = function() {
     SA._dayColumns[day].style.display = show ? '' : 'none';
     SA._dayHeaders[day].style.display = show ? '' : 'none';
   });
-  SA._gridContainer.style.gridTemplateColumns =
-    '70px repeat(' + visibleDays.length + ', 1fr)';
+  var newTemplate = '70px repeat(' + visibleDays.length + ', 1fr)';
+  SA._gridContainer.style.gridTemplateColumns = newTemplate;
+  if (SA._headerStrip) SA._headerStrip.style.gridTemplateColumns = newTemplate;
 
   // ── Re-run block layout per day ───────────────────────────────────────────
   for (var d = 0; d < SA._usedDays.length; d++) {

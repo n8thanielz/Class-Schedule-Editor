@@ -720,6 +720,21 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   padding: 20px;
 }
 
+/* ── Sticky header strip (sits above .schedule-grid, sticky within .schedule-wrapper) ── */
+.grid-header-strip {
+  display: grid;
+  /* grid-template-columns matched to .schedule-grid by JS */
+  min-width: 700px;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  border-bottom: 2px solid #d1d5db;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
 /* ── Schedule Grid ── */
 .schedule-grid {
   display: grid;
@@ -727,7 +742,8 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   min-width: 700px;
   background: #fff;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
@@ -738,18 +754,10 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   font-weight: 700;
   text-align: center;
   padding: 10px 4px;
-  border-bottom: 2px solid #d1d5db;
   border-right: 2px solid #c8c8c2;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #374151;
-  position: sticky;
-  top: 0;
-  z-index: 4;
-}
-
-@media print {
-  .grid-header { position: static; }
 }
 
 .grid-header:first-child {
@@ -1034,10 +1042,20 @@ body.print-compact .online-card-dates {
     overflow: visible !important;
   }
 
-  body.exporting .schedule-grid {
-    border-radius: 0;
+  body.exporting .grid-header-strip {
+    position: static !important;
+    border-radius: 8px 8px 0 0;
     box-shadow: none;
   }
+
+  body.exporting .schedule-grid {
+    border-radius: 0 0 8px 8px;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  .grid-header-strip { position: static !important; }
 }
 
 .hidden { display: none !important; }
