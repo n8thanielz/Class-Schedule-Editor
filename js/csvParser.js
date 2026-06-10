@@ -176,7 +176,7 @@ ScheduleApp.parseCSV = function(file) {
           var c0 = (row[0] || '').trim();
           var c1 = (row[1] || '').trim();
 
-          if (!c0 && !c1) continue;
+          if (!c0 && !c1 && !col(row, 'Section #')) continue;
 
           // Detect header row: scan for "Section #" in any cell.
           // Works for both the full export (col 9) and the shorter export (col 7).
