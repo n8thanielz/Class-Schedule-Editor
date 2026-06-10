@@ -1065,9 +1065,55 @@ body.print-compact .online-card-dates {
 .modal-btn-primary:hover { background: var(--crimson-hover); }
 .modal-btn-primary:disabled { background: rgba(190,0,0,0.35); border-color: rgba(190,0,0,0.35); cursor: default; }
 
+/* ── Edit Strip ── */
+.edit-strip {
+  height: 0;
+  overflow: hidden;
+  background: var(--crimson);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,.14) 0 10px,
+    transparent 10px 20px
+  );
+  transition: height .25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  position: sticky;
+  top: 53px;
+  z-index: 9;
+}
+
+body.edit-mode .edit-strip { height: 34px; }
+
+.edit-strip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  flex-shrink: 0;
+  animation: edit-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes edit-pulse {
+  0%, 100% { opacity: 1;    transform: scale(1);    }
+  50%       { opacity: 0.3; transform: scale(0.65); }
+}
+
+body.edit-mode .course-sidebar {
+  top: 87px;
+  max-height: calc(100vh - 87px);
+}
+
 /* ── Edit Mode ── */
 body.edit-mode .course-block {
-  cursor: pointer;
+  cursor: grab;
   outline: 2px solid transparent;
   transition: opacity 0.15s, box-shadow 0.15s, outline-color 0.15s;
 }
@@ -1084,6 +1130,25 @@ body.edit-mode .course-block:hover {
   box-shadow: 0 8px 28px rgba(0,0,0,0.28);
   z-index: 50;
   outline-color: rgba(190,0,0,0.8) !important;
+}
+
+body.edit-mode .day-column {
+  transition: background 0.15s;
+}
+
+body.edit-mode .day-column::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1.5px dashed transparent;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 0;
+  transition: border-color 0.15s;
+}
+
+body.edit-mode .day-column:hover::after {
+  border-color: rgba(190,0,0,.45);
 }
 
 .snap-indicator {
