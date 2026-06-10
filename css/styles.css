@@ -148,7 +148,7 @@ body {
 .schedule-view {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 .toolbar {
@@ -191,16 +191,15 @@ body {
 .schedule-body {
   display: flex;
   flex: 1;
-  align-items: flex-start;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
 }
 
 /* ── Course Sidebar ── */
 .course-sidebar {
   width: 210px;
   flex-shrink: 0;
-  position: sticky;
-  top: 53px;
-  max-height: calc(100vh - 53px);
   overflow-y: auto;
   background: #fff;
   border-right: 1px solid #e5e7eb;
@@ -716,7 +715,8 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 
 .schedule-wrapper {
   flex: 1;
-  overflow-x: auto;
+  min-width: 0;
+  overflow: auto;
   padding: 20px;
 }
 
@@ -728,7 +728,7 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   background: #fff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  overflow: clip; /* clip preserves border-radius without blocking sticky children */
+  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
@@ -744,12 +744,8 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   text-transform: uppercase;
   color: #374151;
   position: sticky;
-  top: 53px;
+  top: 0;
   z-index: 4;
-}
-
-body.edit-mode .grid-header {
-  top: 87px;
 }
 
 @media print {
@@ -1012,11 +1008,17 @@ body.print-compact .online-card-dates {
     display: none !important;
   }
 
-  /* Switch flex to block so height is predictable; clip wrapper overflow */
+  /* Switch flex to block so height is auto; un-clip wrapper overflow */
   body.exporting .schedule-view {
     display: block !important;
+    height: auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+  }
+
+  body.exporting .schedule-wrapper {
+    overflow: visible !important;
+    height: auto !important;
   }
 
   body.exporting .toolbar {
@@ -1029,7 +1031,7 @@ body.print-compact .online-card-dates {
 
   body.exporting .schedule-body {
     display: block !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   body.exporting .schedule-grid {
@@ -1132,9 +1134,7 @@ body.print-compact .online-card-dates {
   font-weight: 700;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  position: sticky;
-  top: 53px;
-  z-index: 9;
+  flex-shrink: 0;
 }
 
 body.edit-mode .edit-strip { height: 34px; }
@@ -1151,11 +1151,6 @@ body.edit-mode .edit-strip { height: 34px; }
 @keyframes edit-pulse {
   0%, 100% { opacity: 1;    transform: scale(1);    }
   50%       { opacity: 0.3; transform: scale(0.65); }
-}
-
-body.edit-mode .course-sidebar {
-  top: 87px;
-  max-height: calc(100vh - 87px);
 }
 
 /* ── Edit Mode ── */
