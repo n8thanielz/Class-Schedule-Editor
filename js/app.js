@@ -98,7 +98,8 @@ function _markRoomConflicts() {
     sch.sections.forEach(function(s) {
       s._roomConflict = false;
       if (!s._deleted && s.days.length && s.startTime && s.endTime &&
-          s.room && !/^(ONLINE|CANVAS)$/i.test(s.room) && !/^Request/i.test(s.room)) {
+          s.room && !/^(ONLINE|CANVAS)$/i.test(s.room) && !/^Request/i.test(s.room) &&
+          /\d/.test(s.room)) {
         checkable.push(s);
       }
     });
