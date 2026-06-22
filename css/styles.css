@@ -148,7 +148,7 @@ body {
 .schedule-view {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .toolbar {
@@ -191,8 +191,6 @@ body {
 .schedule-body {
   display: flex;
   flex: 1;
-  min-height: 0;
-  overflow: hidden;
   align-items: stretch;
 }
 
@@ -716,23 +714,8 @@ input[type="color"].course-color-input::-webkit-color-swatch {
 .schedule-wrapper {
   flex: 1;
   min-width: 0;
-  overflow: auto;
   padding: 20px;
-}
-
-/* ── Sticky header strip (sits above .schedule-grid, sticky within .schedule-wrapper) ── */
-.grid-header-strip {
-  display: grid;
-  /* grid-template-columns matched to .schedule-grid by JS */
-  min-width: 700px;
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  background: #f8fafc;
-  border: 1px solid #d1d5db;
-  border-bottom: 2px solid #d1d5db;
-  border-radius: 8px 8px 0 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow-x: auto;
 }
 
 /* ── Schedule Grid ── */
@@ -742,8 +725,7 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   min-width: 700px;
   background: #fff;
   border: 1px solid #d1d5db;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
@@ -754,6 +736,7 @@ input[type="color"].course-color-input::-webkit-color-swatch {
   font-weight: 700;
   text-align: center;
   padding: 10px 4px;
+  border-bottom: 2px solid #d1d5db;
   border-right: 2px solid #c8c8c2;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1016,17 +999,10 @@ body.print-compact .online-card-dates {
     display: none !important;
   }
 
-  /* Switch flex to block so height is auto; un-clip wrapper overflow */
+  /* Switch flex to block so height is predictable */
   body.exporting .schedule-view {
     display: block !important;
-    height: auto !important;
     min-height: 0 !important;
-    overflow: visible !important;
-  }
-
-  body.exporting .schedule-wrapper {
-    overflow: visible !important;
-    height: auto !important;
   }
 
   body.exporting .toolbar {
@@ -1039,23 +1015,12 @@ body.print-compact .online-card-dates {
 
   body.exporting .schedule-body {
     display: block !important;
-    overflow: visible !important;
-  }
-
-  body.exporting .grid-header-strip {
-    position: static !important;
-    border-radius: 8px 8px 0 0;
-    box-shadow: none;
   }
 
   body.exporting .schedule-grid {
-    border-radius: 0 0 8px 8px;
+    border-radius: 0;
     box-shadow: none;
   }
-}
-
-@media print {
-  .grid-header-strip { position: static !important; }
 }
 
 .hidden { display: none !important; }
