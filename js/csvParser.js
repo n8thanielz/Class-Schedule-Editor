@@ -243,6 +243,7 @@ ScheduleApp.parseCSV = function(file) {
               room:          isOnline ? 'ONLINE' : parseRoom(roomRaw),
               isOnline:      isOnline,
               doesNotMeet:   true,
+              session:       sessionType,
               dateRange:     csvDateRange(meetingsStr) || (iCalDates && sessionType !== 'Regular Academic Session' ? _iCalToDateRange(iCalDates) : ''),
               iCalStart:     iCalDates ? iCalDates.start : null,
               iCalEnd:       iCalDates ? iCalDates.end   : null,
@@ -297,6 +298,7 @@ ScheduleApp.parseCSV = function(file) {
               sectionNumber: secNum, type: type, instructor: instructor,
               days: [], startTime: '', endTime: '',
               room: parseRoom(roomRaw), isOnline: false, doesNotMeet: true,
+              session: sessionType,
               dateRange: '', iCalStart: null, iCalEnd: null, notes: '',
               _rowIndex: i, _fileIndex: 0, _modified: false, _deleted: false, _isNew: false
             });
@@ -323,6 +325,7 @@ ScheduleApp.parseCSV = function(file) {
               room:          sess.room,
               isOnline:      /^ONLINE$/i.test(sess.room),
               doesNotMeet:   false,
+              session:       sessionType,
               dateRange:     sess.dateRange || (iCalDates && sessionType !== 'Regular Academic Session' ? _iCalToDateRange(iCalDates) : ''),
               iCalStart:     iCalDates ? iCalDates.start : null,
               iCalEnd:       iCalDates ? iCalDates.end   : null,

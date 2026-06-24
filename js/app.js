@@ -55,6 +55,11 @@ function buildTitle() {
   return depts.length ? prefix + depts.join(' + ') + ' Schedule' : 'Combined Schedule';
 }
 
+function _halfSemesterExcludes(a, b) {
+  return (a.session === '1st Half' && b.session === '2nd Half') ||
+         (a.session === '2nd Half' && b.session === '1st Half');
+}
+
 function _markInstructorConflicts() {
   _conflictPairs = [];
   var checkable = [];
@@ -73,6 +78,7 @@ function _markInstructorConflicts() {
       if (a.instructor !== b.instructor) continue;
       var sharedDay = a.days.some(function(d) { return b.days.indexOf(d) !== -1; });
       if (!sharedDay) continue;
+      if (_halfSemesterExcludes(a, b)) continue;
       var aStart = ScheduleApp.timeToMinutes(a.startTime);
       var aEnd   = ScheduleApp.timeToMinutes(a.endTime);
       var bStart = ScheduleApp.timeToMinutes(b.startTime);
@@ -110,6 +116,7 @@ function _markRoomConflicts() {
       if (a.room.toLowerCase() !== b.room.toLowerCase()) continue;
       var sharedDay = a.days.some(function(d) { return b.days.indexOf(d) !== -1; });
       if (!sharedDay) continue;
+      if (_halfSemesterExcludes(a, b)) continue;
       var aStart = ScheduleApp.timeToMinutes(a.startTime);
       var aEnd   = ScheduleApp.timeToMinutes(a.endTime);
       var bStart = ScheduleApp.timeToMinutes(b.startTime);
